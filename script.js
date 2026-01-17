@@ -60,6 +60,69 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => lastEditedBy = null, 100);
     };
 
+    const lineIndicator = document.getElementById('line-indicator');
+
+    // Get current line number in textarea
+    const getSourceLineNumber = () => {
+        const text = sourceTextarea.value.substring(0, sourceTextarea.selectionStart);
+        return text.split('\n').length;
+    };
+
+    // Update line indicator
+    const updateLineIndicator = () => {
+        const line = getSourceLineNumber();
+        if (lineIndicator) {
+            lineIndicator.textContent = `Rad ${line}`;
+        }
+    };
+
+    // Highlight element in WYSIWYG based on source cursor position
+    const highlightFromSource = () => {
+        updateLineIndicator();
+
+        // Remove previous highlights
+        editor.querySelectorAll('.highlight-sync').forEach(el => el.classList.remove('highlight-sync'));
+
+        const lineNum = getSourceLineNumber();
+        const elements = editor.querySelectorAll('p, h1, h2, h3, h4, li, blockquote, pre, table');
+
+        if (elements[lineNum - 1]) {
+            elements[lineNum - 1].classList.add('highlight-sync');
+            elements[lineNum - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    };
+
+    // Highlight line in source based on WYSIWYG cursor
+    const highlightFromEditor = () => {
+        // Remove previous highlights
+        editor.querySelectorAll('.highlight-sync').forEach(el => el.classList.remove('highlight-sync'));
+
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+
+        let node = selection.anchorNode;
+        while (node && node !== editor) {
+            if (node.nodeType === 1) {
+                const tagName = node.tagName.toLowerCase();
+                if (['p', 'h1', 'h2', 'h3', 'h4', 'li', 'blockquote', 'pre', 'table'].includes(tagName)) {
+                    node.classList.add('highlight-sync');
+
+                    // Find which element index this is
+                    const elements = editor.querySelectorAll('p, h1, h2, h3, h4, li, blockquote, pre, table');
+                    let index = Array.from(elements).indexOf(node);
+
+                    // Update line indicator
+                    if (lineIndicator && index >= 0) {
+                        lineIndicator.textContent = `Rad ${index + 1}`;
+                    }
+                    break;
+                }
+            }
+            node = node.parentNode;
+        }
+    };
+
+
     const toggleSplitView = () => {
         if (sourceWrapper) {
             sourceWrapper.classList.toggle('hidden');
@@ -119,8 +182,16 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => lastEditedBy = null, 100);
     });
 
+    // Track cursor in WYSIWYG -> highlight in source direction
+    editor.addEventListener('click', highlightFromEditor);
+    editor.addEventListener('keyup', highlightFromEditor);
+
     // Source Textarea input - live sync
     sourceTextarea.addEventListener('input', syncToEditor);
+
+    // Track cursor in source -> highlight in WYSIWYG direction
+    sourceTextarea.addEventListener('click', highlightFromSource);
+    sourceTextarea.addEventListener('keyup', highlightFromSource);
 
     // Split View Button
     if (toggleSplitViewBtn) {
