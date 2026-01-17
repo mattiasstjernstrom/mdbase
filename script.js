@@ -372,11 +372,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // Keyboard Shortcuts
     window.addEventListener('keydown', (e) => {
         const isCmd = e.metaKey || e.ctrlKey;
+        const isShift = e.shiftKey;
+
+        // Command Palette
         if (isCmd && e.key === 'k') { e.preventDefault(); commandPalette.classList.remove('hidden'); commandInput.focus(); renderCommands(); }
+        // Find
         if (isCmd && e.key === 'f') { e.preventDefault(); findBox.classList.remove('hidden'); findInput.focus(); }
+        // Outline
         if (isCmd && e.key === 'o') { e.preventDefault(); outlineBtn?.click(); }
+        // Split View
         if (isCmd && e.key === 'j') { e.preventDefault(); toggleSplitView(); }
+        // Escape
         if (e.key === 'Escape') { commandPalette.classList.add('hidden'); findBox.classList.add('hidden'); }
+
+        // Formatting Shortcuts
+        if (isCmd && e.key === 'b') {
+            e.preventDefault();
+            document.querySelector('[data-command="bold"]').click();
+        }
+        if (isCmd && e.key === 'i') {
+            e.preventDefault();
+            document.querySelector('[data-command="italic"]').click();
+        }
+        if (isCmd && isShift && e.key.toLowerCase() === 'x') {
+            e.preventDefault();
+            document.querySelector('[data-command="strikeThrough"]').click();
+        }
     });
 
     if (commandInput) commandInput.addEventListener('input', (e) => renderCommands(e.target.value));
