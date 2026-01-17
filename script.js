@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Commands & Tools ---
     const commands = [
-        { name: 'Toggle Split View', icon: 'ph-columns', action: toggleSplitView, shortcut: 'Cmd+\\' },
+        { name: 'Toggle Split View', icon: 'ph-columns', action: toggleSplitView, shortcut: 'Cmd+J' },
         { name: 'Toggle Outline', icon: 'ph-list-numbers', action: () => outlineBtn?.click(), shortcut: 'Cmd+O' },
         { name: 'Exportera HTML', icon: 'ph-download', action: () => exportHtmlBtn?.click(), shortcut: 'Cmd+E' },
         { name: 'Finn & Ersätt', icon: 'ph-magnifying-glass', action: () => findBox?.classList.remove('hidden'), shortcut: 'Cmd+F' },
@@ -196,8 +196,8 @@ document.addEventListener('DOMContentLoaded', () => {
             outlineBtn?.click();
         }
 
-        // Split View: Cmd+\ (backslash)
-        if (isCmd && e.key === '\\') {
+        // Split View: Cmd+J
+        if (isCmd && e.key === 'j') {
             e.preventDefault();
             toggleSplitView();
         }
