@@ -140,17 +140,56 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
     };
 
+    // Check if cursor is inside markdown syntax in source textarea
+    const isInsideMarkdownSyntax = (before, after) => {
+        const start = sourceTextarea.selectionStart;
+        const end = sourceTextarea.selectionEnd;
+        const text = sourceTextarea.value;
+
+        const textBefore = text.substring(Math.max(0, start - before.length), start);
+        const textAfter = text.substring(end, Math.min(text.length, end + after.length));
+
+        return textBefore === before && textAfter === after;
+    };
+
+    // Check current line for heading prefix
+    const isOnHeadingLine = (prefix) => {
+        const text = sourceTextarea.value;
+        const start = sourceTextarea.selectionStart;
+        const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+        const lineText = text.substring(lineStart, start);
+        return lineText.startsWith(prefix);
+    };
+
     // Update active states on toolbar buttons
     const updateButtonStates = () => {
+        const isInSource = lastFocusedElement === sourceTextarea || document.activeElement === sourceTextarea;
+
         document.querySelectorAll('[data-command]').forEach(btn => {
             const command = btn.getAttribute('data-command');
             const value = btn.getAttribute('data-value');
             let isActive = false;
 
-            if (command === 'formatBlock') {
-                isActive = isInsideBlock(value);
+            if (isInSource) {
+                // Check markdown syntax in source view
+                if (command === 'bold') {
+                    isActive = isInsideMarkdownSyntax('**', '**');
+                } else if (command === 'italic') {
+                    isActive = isInsideMarkdownSyntax('_', '_');
+                } else if (command === 'strikeThrough') {
+                    isActive = isInsideMarkdownSyntax('~~', '~~');
+                } else if (command === 'formatBlock' && value === 'h1') {
+                    isActive = isOnHeadingLine('# ');
+                } else if (command === 'formatBlock' && value === 'h2') {
+                    isActive = isOnHeadingLine('## ');
+                }
             } else {
-                isActive = document.queryCommandState(command);
+                // WYSIWYG mode
+                if (command === 'formatBlock') {
+                    isActive = isInsideBlock(value);
+                } else {
+                    isActive = document.queryCommandState(command);
+                }
             }
 
             btn.classList.toggle('active', isActive);
@@ -173,11 +212,18 @@ document.addEventListener('DOMContentLoaded', () => {
     sourceTextarea.addEventListener('input', () => {
         syncToEditor();
         updateLineIndicator();
+        updateButtonStates();
     });
 
-    // Update line indicator on cursor move in source
-    sourceTextarea.addEventListener('click', updateLineIndicator);
-    sourceTextarea.addEventListener('keyup', updateLineIndicator);
+    // Update line indicator and button states on cursor move in source
+    sourceTextarea.addEventListener('click', () => {
+        updateLineIndicator();
+        updateButtonStates();
+    });
+    sourceTextarea.addEventListener('keyup', () => {
+        updateLineIndicator();
+        updateButtonStates();
+    });
 
     // Update toolbar button active states when cursor moves in WYSIWYG
     editor.addEventListener('click', updateButtonStates);
