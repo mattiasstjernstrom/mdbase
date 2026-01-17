@@ -236,11 +236,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (commandInput) commandInput.addEventListener('input', (e) => renderCommands(e.target.value));
 
+    // Wrap selected text in textarea with markdown syntax
+    const wrapSourceSelection = (before, after) => {
+        const start = sourceTextarea.selectionStart;
+        const end = sourceTextarea.selectionEnd;
+        const text = sourceTextarea.value;
+        const selected = text.substring(start, end);
+
+        sourceTextarea.value = text.substring(0, start) + before + selected + after + text.substring(end);
+        sourceTextarea.selectionStart = start + before.length;
+        sourceTextarea.selectionEnd = end + before.length;
+        sourceTextarea.focus();
+        syncToEditor();
+    };
+
+    // Markdown syntax map for toolbar commands
+    const markdownSyntax = {
+        'bold': { before: '**', after: '**' },
+        'italic': { before: '_', after: '_' },
+        'strikeThrough': { before: '~~', after: '~~' },
+        'formatBlock': {
+            'h1': { before: '# ', after: '' },
+            'h2': { before: '## ', after: '' },
+            'blockquote': { before: '> ', after: '' },
+            'pre': { before: '```\n', after: '\n```' }
+        }
+    };
+
     // Toolbar Buttons
     document.querySelectorAll('[data-command]').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            document.execCommand(btn.getAttribute('data-command'), false, btn.getAttribute('data-value'));
+            const command = btn.getAttribute('data-command');
+            const value = btn.getAttribute('data-value');
+
+            // Check if source textarea is focused
+            if (document.activeElement === sourceTextarea) {
+                let syntax;
+                if (command === 'formatBlock' && markdownSyntax.formatBlock[value]) {
+                    syntax = markdownSyntax.formatBlock[value];
+                } else if (markdownSyntax[command]) {
+                    syntax = markdownSyntax[command];
+                }
+
+                if (syntax) {
+                    wrapSourceSelection(syntax.before, syntax.after);
+                    return;
+                }
+            }
+
+            // Default: apply to WYSIWYG
+            document.execCommand(command, false, value);
             editor.focus();
             syncToSource();
         });
