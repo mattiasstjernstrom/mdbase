@@ -447,6 +447,35 @@ body {
 
 #source-code {
     font-family: var(--font-mono) !important;
+    white-space: pre;
+    display: block;
+}
+
+.source-line {
+    display: block;
+    padding: 2px 0;
+    border-left: 3px solid transparent;
+    transition: all 0.15s ease;
+}
+
+.source-line.active {
+    background: rgba(59, 130, 246, 0.15);
+    border-left-color: #3b82f6;
+}
+
+.line-number {
+    display: inline-block;
+    width: 3em;
+    color: #6b7280;
+    text-align: right;
+    padding-right: 1em;
+    user-select: none;
+    opacity: 0.6;
+}
+
+.source-line.active .line-number {
+    color: #3b82f6;
+    opacity: 1;
 }
 
 .btn.small {

@@ -36,12 +36,63 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateSourceView = () => {
         if (sourceWrapper && !sourceWrapper.classList.contains('hidden')) {
             const markdown = turndownService.turndown(editor.innerHTML);
-            sourceCode.textContent = markdown;
-            if (typeof Prism !== 'undefined') {
-                Prism.highlightElement(sourceCode);
-            }
+            const lines = markdown.split('\n');
+
+            // Create line-numbered HTML
+            const html = lines.map((line, i) => {
+                const lineNum = String(i + 1).padStart(3, ' ');
+                const escapedLine = line.replace(/</g, '&lt;').replace(/>/g, '&gt;') || ' ';
+                return `<span class="source-line" data-line="${i + 1}"><span class="line-number">${lineNum}</span>${escapedLine}</span>`;
+            }).join('\n');
+
+            sourceCode.innerHTML = html;
+            highlightCursorLine();
         }
     };
+
+    const highlightCursorLine = () => {
+        if (!sourceWrapper || sourceWrapper.classList.contains('hidden')) return;
+
+        // Get current selection in editor
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+
+        const range = selection.getRangeAt(0);
+        let node = range.startContainer;
+
+        // Find the block-level element the cursor is in
+        while (node && node !== editor) {
+            if (node.nodeType === 1) {
+                const tagName = node.tagName.toLowerCase();
+                if (['p', 'h1', 'h2', 'h3', 'h4', 'li', 'blockquote', 'pre', 'table'].includes(tagName)) {
+                    break;
+                }
+            }
+            node = node.parentNode;
+        }
+
+        if (!node || node === editor) return;
+
+        // Find position of this element among siblings
+        const elements = editor.querySelectorAll('p, h1, h2, h3, h4, li, blockquote, pre, table, tr');
+        let lineIndex = 0;
+        for (let i = 0; i < elements.length; i++) {
+            if (elements[i] === node || elements[i].contains(node)) {
+                lineIndex = i;
+                break;
+            }
+        }
+
+        // Highlight corresponding line in source
+        const sourceLines = sourceCode.querySelectorAll('.source-line');
+        sourceLines.forEach(el => el.classList.remove('active'));
+
+        if (sourceLines[lineIndex]) {
+            sourceLines[lineIndex].classList.add('active');
+            sourceLines[lineIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    };
+
 
     const toggleSplitView = () => {
         if (sourceWrapper) {
@@ -94,6 +145,10 @@ document.addEventListener('DOMContentLoaded', () => {
         updateOutline();
         saveToLocalStorage();
     });
+
+    // Track cursor position for split view sync
+    editor.addEventListener('click', highlightCursorLine);
+    editor.addEventListener('keyup', highlightCursorLine);
 
     // Split View Button (THIS WAS MISSING!)
     if (toggleSplitViewBtn) {
