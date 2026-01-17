@@ -99,6 +99,49 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<blockquote>${text}</blockquote>`;
     };
 
+    // Emoji shortcode map
+    const emojiMap = {
+        'smile': '😊', 'grinning': '😀', 'joy': '😂', 'heart': '❤️', 'heart_eyes': '😍',
+        'fire': '🔥', 'thumbsup': '👍', 'thumbsdown': '👎', 'clap': '👏', 'wave': '👋',
+        'rocket': '🚀', 'star': '⭐', 'sparkles': '✨', 'tada': '🎉', 'party': '🥳',
+        'check': '✅', 'x': '❌', 'warning': '⚠️', 'info': 'ℹ️', 'question': '❓',
+        'bulb': '💡', 'idea': '💡', 'memo': '📝', 'book': '📖', 'link': '🔗',
+        'lock': '🔒', 'key': '🔑', 'gear': '⚙️', 'wrench': '🔧', 'hammer': '🔨',
+        'bug': '🐛', 'coffee': '☕', 'pizza': '🍕', 'beer': '🍺', 'cake': '🎂',
+        'sun': '☀️', 'moon': '🌙', 'cloud': '☁️', 'rain': '🌧️', 'snow': '❄️',
+        'eyes': '👀', 'thinking': '🤔', 'shrug': '🤷', 'facepalm': '🤦', 'pray': '🙏',
+        '100': '💯', 'muscle': '💪', 'crown': '👑', 'gem': '💎', 'trophy': '🏆',
+        'arrow_right': '➡️', 'arrow_left': '⬅️', 'arrow_up': '⬆️', 'arrow_down': '⬇️',
+        'plus': '➕', 'minus': '➖', 'point_right': '👉', 'point_left': '👈'
+    };
+
+    // Custom text renderer for emoji shortcodes and color previews
+    renderer.text = (args) => {
+        let text = typeof args === 'string' ? args : (args.text || args);
+
+        // Replace :emoji: shortcodes with actual emojis
+        text = text.replace(/:([a-z0-9_]+):/gi, (match, code) => {
+            return emojiMap[code.toLowerCase()] || match;
+        });
+
+        // Color preview for HEX colors (#fff, #ffffff)
+        text = text.replace(/`(#[0-9a-fA-F]{3,6})`/g, (match, color) => {
+            return `<code class="color-code"><span class="color-chip" style="background-color: ${color};"></span>${color}</code>`;
+        });
+
+        // Color preview for RGB colors
+        text = text.replace(/`(rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\))`/gi, (match, color) => {
+            return `<code class="color-code"><span class="color-chip" style="background-color: ${color};"></span>${color}</code>`;
+        });
+
+        // Color preview for HSL colors
+        text = text.replace(/`(hsl\(\s*\d+\s*,\s*\d+%?\s*,\s*\d+%?\s*\))`/gi, (match, color) => {
+            return `<code class="color-code"><span class="color-chip" style="background-color: ${color};"></span>${color}</code>`;
+        });
+
+        return text;
+    };
+
     marked.setOptions({
         renderer: renderer,
         gfm: true,
@@ -132,6 +175,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const text = contentEl ? turndownService.turndown(contentEl.innerHTML) : content;
             return '\n> [!' + type.toUpperCase() + ']\n> ' + text.trim().replace(/\n/g, '\n> ') + '\n';
         }
+    });
+
+    // Custom Turndown rule for underline (preserves as HTML since Markdown doesn't support it)
+    turndownService.addRule('underline', {
+        filter: (node) => node.nodeName === 'U' || node.nodeName === 'INS',
+        replacement: (content) => `<ins>${content}</ins>`
     });
 
     let lastEditedBy = null;
@@ -663,6 +712,94 @@ document.addEventListener('DOMContentLoaded', () => {
     if (insertHrBtn) {
         insertHrBtn.addEventListener('click', () => {
             insertAtCursor('<hr>', '\n---\n');
+        });
+    }
+
+    // Quote/Alert Dropdown
+    const quoteDropdown = document.getElementById('quote-dropdown');
+    if (quoteDropdown) {
+        const dropdownItems = quoteDropdown.querySelectorAll('.dropdown-item');
+        dropdownItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const insertType = item.getAttribute('data-insert');
+
+                if (insertType === 'blockquote') {
+                    const md = '\n> Citat här\n';
+                    insertAtCursor(marked.parse(md), md);
+                } else {
+                    // Alert types
+                    const alertType = insertType.replace('alert-', '').toUpperCase();
+                    const md = `\n> [!${alertType}]\n> Skriv din text här\n`;
+                    insertAtCursor(marked.parse(md), md);
+                }
+
+                // Close dropdown
+                quoteDropdown.classList.remove('open');
+            });
+        });
+    }
+
+    // Subscript Button
+    const subscriptBtn = document.getElementById('btn-subscript');
+    if (subscriptBtn) {
+        subscriptBtn.addEventListener('click', () => {
+            const selection = window.getSelection();
+            const selectedText = selection.toString() || 'x';
+            if (lastFocusedElement === sourceTextarea) {
+                const start = sourceTextarea.selectionStart;
+                const end = sourceTextarea.selectionEnd;
+                const text = sourceTextarea.value;
+                const sel = text.substring(start, end) || 'x';
+                sourceTextarea.value = text.substring(0, start) + `<sub>${sel}</sub>` + text.substring(end);
+                syncToEditor();
+            } else {
+                editor.focus();
+                document.execCommand('insertHTML', false, `<sub>${selectedText}</sub>`);
+                syncToSource();
+            }
+        });
+    }
+
+    // Superscript Button
+    const superscriptBtn = document.getElementById('btn-superscript');
+    if (superscriptBtn) {
+        superscriptBtn.addEventListener('click', () => {
+            const selection = window.getSelection();
+            const selectedText = selection.toString() || '2';
+            if (lastFocusedElement === sourceTextarea) {
+                const start = sourceTextarea.selectionStart;
+                const end = sourceTextarea.selectionEnd;
+                const text = sourceTextarea.value;
+                const sel = text.substring(start, end) || '2';
+                sourceTextarea.value = text.substring(0, start) + `<sup>${sel}</sup>` + text.substring(end);
+                syncToEditor();
+            } else {
+                editor.focus();
+                document.execCommand('insertHTML', false, `<sup>${selectedText}</sup>`);
+                syncToSource();
+            }
+        });
+    }
+
+    // Emoji Picker
+    const emojiDropdown = document.getElementById('emoji-dropdown');
+    if (emojiDropdown) {
+        const emojiButtons = emojiDropdown.querySelectorAll('.emoji-btn');
+        emojiButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const emoji = btn.getAttribute('data-emoji');
+                if (lastFocusedElement === sourceTextarea) {
+                    const start = sourceTextarea.selectionStart;
+                    sourceTextarea.value = sourceTextarea.value.substring(0, start) + emoji + sourceTextarea.value.substring(start);
+                    syncToEditor();
+                } else {
+                    editor.focus();
+                    document.execCommand('insertText', false, emoji);
+                    syncToSource();
+                }
+            });
         });
     }
 

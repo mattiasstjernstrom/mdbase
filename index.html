@@ -173,6 +173,18 @@
                     <button class="tool-btn" data-command="strikeThrough" data-tooltip="Genomstruken">
                         <i class="ph ph-text-strikethrough"></i>
                     </button>
+                    <button class="tool-btn" data-command="underline" data-tooltip="Understrykning">
+                        <i class="ph ph-text-underline"></i>
+                    </button>
+                    <button class="tool-btn" id="btn-subscript" data-tooltip="Nedsänkt">
+                        <i class="ph ph-text-subscript"></i>
+                    </button>
+                    <button class="tool-btn" id="btn-superscript" data-tooltip="Upphöjd">
+                        <i class="ph ph-text-superscript"></i>
+                    </button>
+                </div>
+                <div class="divider"></div>
+                <div class="toolbar-group">
                     <button class="tool-btn" data-command="formatBlock" data-value="pre" data-tooltip="Kodblock">
                         <i class="ph ph-code-block"></i>
                     </button>
@@ -191,9 +203,33 @@
                     <button class="tool-btn" id="link-btn" data-tooltip="Länk">
                         <i class="ph ph-link"></i>
                     </button>
-                    <button class="tool-btn" data-command="formatBlock" data-value="blockquote" data-tooltip="Citat">
-                        <i class="ph ph-quotes"></i>
-                    </button>
+                    <div class="tool-btn-dropdown" id="quote-dropdown">
+                        <button class="tool-btn" data-tooltip="Citat / Varningar">
+                            <i class="ph ph-quotes"></i>
+                            <i class="ph ph-caret-down" style="font-size: 0.6em; margin-left: 2px;"></i>
+                        </button>
+                        <div class="dropdown-menu">
+                            <button class="dropdown-item" data-insert="blockquote">
+                                <i class="ph ph-quotes"></i> Citat
+                            </button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item" data-insert="alert-note">
+                                <i class="ph ph-info"></i> Note
+                            </button>
+                            <button class="dropdown-item" data-insert="alert-tip">
+                                <i class="ph ph-lightbulb"></i> Tip
+                            </button>
+                            <button class="dropdown-item" data-insert="alert-important">
+                                <i class="ph ph-star"></i> Important
+                            </button>
+                            <button class="dropdown-item" data-insert="alert-warning">
+                                <i class="ph ph-warning"></i> Warning
+                            </button>
+                            <button class="dropdown-item" data-insert="alert-caution">
+                                <i class="ph ph-warning-octagon"></i> Caution
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="divider"></div>
                 <div class="toolbar-group">
