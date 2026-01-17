@@ -28,6 +28,14 @@ document.addEventListener('DOMContentLoaded', () => {
     turndownService.use(turndownPluginGfm.gfm);
 
     let lastEditedBy = null;
+    let lastFocusedElement = null;
+
+    // Track focus changes to know where to apply formatting
+    document.addEventListener('focusout', (e) => {
+        if (e.target === editor || e.target === sourceTextarea) {
+            lastFocusedElement = e.target;
+        }
+    });
 
     // --- Core Functions ---
     const updateStats = () => {
@@ -270,8 +278,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const command = btn.getAttribute('data-command');
             const value = btn.getAttribute('data-value');
 
-            // Check if source textarea is focused
-            if (document.activeElement === sourceTextarea) {
+            // Check if source textarea was last focused
+            if (lastFocusedElement === sourceTextarea) {
                 let syntax;
                 if (command === 'formatBlock' && markdownSyntax.formatBlock[value]) {
                     syntax = markdownSyntax.formatBlock[value];
