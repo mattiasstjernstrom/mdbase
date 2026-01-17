@@ -215,6 +215,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 // WYSIWYG mode
                 if (command === 'formatBlock') {
                     isActive = isInsideBlock(value);
+                } else if (command === 'bold') {
+                    // Browsers often return true for bold inside headings.
+                    // We check if it's actually wrapped in a bold tag.
+                    isActive = document.queryCommandState(command);
+                    if (isActive && (isInsideBlock('h1') || isInsideBlock('h2') || isInsideBlock('h3'))) {
+                        // Check if there's an actual bold tag between the selection and the heading block
+                        const selection = window.getSelection();
+                        if (selection.rangeCount > 0) {
+                            let node = selection.anchorNode;
+                            let foundBoldTag = false;
+                            while (node && node !== editor) {
+                                if (node.nodeType === 1) {
+                                    if (['STRONG', 'B'].includes(node.tagName)) {
+                                        foundBoldTag = true;
+                                        break;
+                                    }
+                                    if (['H1', 'H2', 'H3'].includes(node.tagName)) break;
+                                }
+                                node = node.parentNode;
+                            }
+                            isActive = foundBoldTag;
+                        }
+                    }
                 } else {
                     isActive = document.queryCommandState(command);
                 }

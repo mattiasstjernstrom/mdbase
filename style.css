@@ -353,7 +353,7 @@ body {
     color: var(--text-primary);
 }
 
-.outline-item.h1 { font-weight: 600; padding-left: 0.25rem; }
+.outline-item.h1 { font-weight: 500; padding-left: 0.25rem; }
 .outline-item.h2 { padding-left: 1rem; }
 .outline-item.h3 { padding-left: 2rem; font-size: 0.8rem; }
 .btn {
@@ -650,7 +650,7 @@ body {
     color: #111827;
     margin-top: 2em;
     margin-bottom: 0.5em;
-    font-weight: 700;
+    font-weight: 500;
 }
 
 .editor-content h1:first-child {
