@@ -254,33 +254,19 @@ html, body {
     width: 100%; /* Ensure full width on mobile */
 }
 
-/* Top Bar */
-.top-bar {
-    position: relative;
-    height: 50px;
-    padding: 0 2rem;
+/* Toolbar Container - Centered floating bar */
+.toolbar-container {
+    position: sticky;
+    top: 0;
+    z-index: 100;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--bg-app); /* Transparent-ish feel */
-    border-bottom: 1px solid var(--border-color);
-    gap: 1rem;
-}
-
-.app-logo {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    align-items: center;
     justify-content: center;
-    pointer-events: none;
+    padding: 2.5rem 1rem 1rem 1rem; /* Extra top padding for tooltips */
+    pointer-events: none; /* Allow scrolling through the container */
 }
 
-.app-logo img {
-    height: 28px;
-    width: auto;
+.toolbar-container .toolbar {
+    pointer-events: auto; /* But toolbar itself is clickable */
 }
 
 .mobile-only {
@@ -666,27 +652,19 @@ html, body {
     padding: 2rem;
 }
 .toolbar {
-    position: sticky;
-    top: 1rem;
-    z-index: 100;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    margin: 1.5rem 2rem 1rem 2rem;
-    padding: 0.625rem 1.25rem;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 0.5rem 1rem;
     border-radius: 1rem;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    gap: 0.5rem;
+    box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.06);
     width: fit-content;
-    max-width: 90%;
-    align-self: center;
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.5);
     overflow: visible;
-    -webkit-overflow-scrolling: touch;
     flex-shrink: 0;
-    transition: box-shadow 0.3s ease, transform 0.2s ease;
 }
 
 .toolbar:hover {
