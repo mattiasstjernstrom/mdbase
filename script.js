@@ -489,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderDocList();
     };
 
-    const createWelcomeDocument = async () => {
+    const createWelcomeDocument = async (keepOpen = false) => {
         let markdownContent;
         try {
             const response = await fetch('welcome.md');
@@ -514,7 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updatedAt: Date.now()
         };
         documents.push(welcomeDoc);
-        switchDocument(welcomeDoc.id);
+        switchDocument(welcomeDoc.id, keepOpen);
     };
 
     const loadDocuments = async () => {
@@ -596,12 +596,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const handleConfirm = async () => {
             documents = documents.filter(d => d.id !== id);
             if (documents.length === 0) {
-                await createWelcomeDocument();
+                await createWelcomeDocument(true);
             } else if (currentDocId === id) {
-                switchDocument(documents[0].id);
+                switchDocument(documents[0].id, true);
             } else {
                 saveToLocalStorage();
             }
+            updateDashboardStats();
             confirmModal.classList.add('hidden');
             cleanup();
         };
@@ -622,7 +623,7 @@ document.addEventListener('DOMContentLoaded', () => {
         closeConfirm.addEventListener('click', handleCancel);
     };
 
-    const switchDocument = (id) => {
+    const switchDocument = (id, keepOpen = false) => {
         // Save current before switching
         if (currentDocId) {
              const docIndex = documents.findIndex(d => d.id === currentDocId);
@@ -643,7 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 redoStack.length = 0;
             }
         }
-        if (sidebar) sidebar.classList.remove('active');
+        if (sidebar && !keepOpen) sidebar.classList.remove('active');
         saveToLocalStorage();
     };
 
