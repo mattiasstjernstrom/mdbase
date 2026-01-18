@@ -256,13 +256,31 @@ html, body {
 
 /* Top Bar */
 .top-bar {
+    position: relative;
     height: 50px;
     padding: 0 2rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     background: var(--bg-app); /* Transparent-ish feel */
+    border-bottom: 1px solid var(--border-color);
     gap: 1rem;
+}
+
+.app-logo {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.app-logo img {
+    height: 28px;
+    width: auto;
 }
 
 .mobile-only {
@@ -654,7 +672,7 @@ html, body {
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    margin: 0 2rem 1rem 2rem;
+    margin: 1.5rem 2rem 1rem 2rem;
     padding: 0.625rem 1.25rem;
     border-radius: 1rem;
     display: flex;
