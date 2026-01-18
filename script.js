@@ -144,30 +144,43 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Custom text renderer for emoji shortcodes and color previews
-    renderer.text = (args) => {
-        let text = typeof args === 'string' ? args : (args.text || args);
+    renderer.text = function(token) {
+        const text = typeof token === 'string' ? token : (token.text || '');
+
+        // Handle nested inline tokens (fixes bold/italic in lists)
+        // If we have children, we must render them instead of the raw text
+        if (typeof token === 'object' && token.tokens && token.tokens.length > 0) {
+            if (this.parser && this.parser.parseInline) {
+                return this.parser.parseInline(token.tokens);
+            } else if (typeof marked !== 'undefined' && marked.parseInline) {
+                // Fallback if this.parser isn't available
+                return marked.parseInline(text);
+            }
+        }
+
+        let content = text;
 
         // Replace :emoji: shortcodes with actual emojis
-        text = text.replace(/:([a-z0-9_]+):/gi, (match, code) => {
+        content = content.replace(/:([a-z0-9_]+):/gi, (match, code) => {
             return emojiMap[code.toLowerCase()] || match;
         });
 
         // Color preview for HEX colors (#fff, #ffffff)
-        text = text.replace(/`(#[0-9a-fA-F]{3,6})`/g, (match, color) => {
+        content = content.replace(/`(#[0-9a-fA-F]{3,6})`/g, (match, color) => {
             return `<code class="color-code"><span class="color-chip" style="background-color: ${color};"></span>${color}</code>`;
         });
 
         // Color preview for RGB colors
-        text = text.replace(/`(rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\))`/gi, (match, color) => {
+        content = content.replace(/`(rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\))`/gi, (match, color) => {
             return `<code class="color-code"><span class="color-chip" style="background-color: ${color};"></span>${color}</code>`;
         });
 
         // Color preview for HSL colors
-        text = text.replace(/`(hsl\(\s*\d+\s*,\s*\d+%?\s*,\s*\d+%?\s*\))`/gi, (match, color) => {
+        content = content.replace(/`(hsl\(\s*\d+\s*,\s*\d+%?\s*,\s*\d+%?\s*\))`/gi, (match, color) => {
             return `<code class="color-code"><span class="color-chip" style="background-color: ${color};"></span>${color}</code>`;
         });
 
-        return text;
+        return content;
     };
 
     // Footnote preprocessor
