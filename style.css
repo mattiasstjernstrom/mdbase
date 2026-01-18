@@ -912,7 +912,7 @@ html, body {
     outline: none;
     font-size: 1.125rem;
     line-height: 1.75;
-    color: #374151;
+    color: var(--text-primary);
 }
 
 /* Editor Typography in Content */
@@ -920,7 +920,7 @@ html, body {
 .editor-content h2,
 .editor-content h3 {
     font-family: var(--font-heading);
-    color: #111827;
+    color: var(--text-primary);
     margin-top: 2em;
     margin-bottom: 0.5em;
     font-weight: 500;
