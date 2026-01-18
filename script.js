@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const outlineBtn = document.getElementById('outline-btn');
     const outlineSidebar = document.getElementById('outline-sidebar');
     const outlineContent = document.getElementById('outline-content');
-    const linkBtn = document.getElementById('link-btn');
+
     const inlineCodeBtn = document.getElementById('inline-code-btn');
     const insertTableBtn = document.getElementById('btn-insert-table');
     const insertTasklistBtn = document.getElementById('btn-insert-tasklist');
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let lang = typeof args === 'string' ? arguments[1] : (args.lang || '');
         // Display 'code' if lang is empty or 'text'
         const displayLang = (!lang || lang === 'text') ? 'code' : lang;
-        return `<div class="code-block-wrapper" data-lang="${lang || 'text'}"><div class="code-block-header" contenteditable="false"><span class="code-lang-tag" title="Klicka för att ändra språk">${displayLang}</span></div><pre><code class="language-${lang || 'text'}">${code}</code></pre></div>`;
+        return `<div class="code-block-wrapper" data-lang="${lang || 'text'}"><div class="code-block-header" contenteditable="false"><span class="code-lang-tag" title="Click to change language">${displayLang}</span></div><pre><code class="language-${lang || 'text'}">${code}</code></pre></div>`;
     };
 
     // Custom heading renderer for {#custom-id} anchor syntax
@@ -163,6 +163,45 @@ document.addEventListener('DOMContentLoaded', () => {
         return text;
     };
 
+    // Footnote preprocessor
+    const processFootnotes = (markdown) => {
+        // Find all footnote definitions [^id]: text
+        const footnoteDefRegex = /^\[\^([^\]]+)\]:\s*(.+)$/gm;
+        const footnotes = {};
+        let match;
+
+        while ((match = footnoteDefRegex.exec(markdown)) !== null) {
+            footnotes[match[1]] = match[2];
+        }
+
+        // If no footnotes, return unchanged
+        if (Object.keys(footnotes).length === 0) return markdown;
+
+        // Remove footnote definitions from main content
+        let processed = markdown.replace(/^\[\^([^\]]+)\]:\s*.+$/gm, '');
+
+        // Replace footnote references [^id] with superscript links
+        processed = processed.replace(/\[\^([^\]]+)\]/g, (match, id) => {
+            if (footnotes[id]) {
+                return `<sup class="footnote-ref"><a href="#fn-${id}" id="fnref-${id}">[${id}]</a></sup>`;
+            }
+            return match;
+        });
+
+        // Build footnotes section
+        const footnoteEntries = Object.entries(footnotes);
+        if (footnoteEntries.length > 0) {
+            let footnotesHtml = '\n\n<div class="footnotes"><hr><ol>';
+            footnoteEntries.forEach(([id, text]) => {
+                footnotesHtml += `<li id="fn-${id}">${text} <a href="#fnref-${id}">↩</a></li>`;
+            });
+            footnotesHtml += '</ol></div>';
+            processed += footnotesHtml;
+        }
+
+        return processed;
+    };
+
     marked.setOptions({
         renderer: renderer,
         gfm: true,
@@ -215,6 +254,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Custom Turndown rule for footnote references
+    turndownService.addRule('footnoteRef', {
+        filter: (node) => node.nodeName === 'SUP' && node.classList.contains('footnote-ref'),
+        replacement: (content, node) => {
+            const link = node.querySelector('a');
+            if (link) {
+                const id = link.id.replace('fnref-', '');
+                return `[^${id}]`;
+            }
+            return content;
+        }
+    });
+
+    // Custom Turndown rule for footnotes section
+    turndownService.addRule('footnotesSection', {
+        filter: (node) => node.nodeName === 'DIV' && node.classList.contains('footnotes'),
+        replacement: (content, node) => {
+            const items = node.querySelectorAll('li');
+            let footnotesDef = '\n';
+            items.forEach(item => {
+                const id = item.id.replace('fn-', '');
+                // Get text without the back arrow
+                let text = item.textContent.replace(/\s*↩\s*$/, '').trim();
+                footnotesDef += `[^${id}]: ${text}\n`;
+            });
+            return footnotesDef;
+        }
+    });
+
     let lastEditedBy = null;
     let lastFocusedElement = null;
 
@@ -229,8 +297,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateStats = () => {
         const text = editor.innerText || '';
         const words = text.trim().split(/\s+/).filter(word => word.length > 0).length;
-        wordCountEl.innerText = `${words} ord`;
-        readTimeEl.innerText = `Ca ${Math.ceil(words / 200)} min läsning`;
+        wordCountEl.innerText = `${words} words`;
+        readTimeEl.innerText = `~ ${Math.ceil(words / 200)} min read`;
     };
 
     // Sync WYSIWYG -> Source
@@ -247,7 +315,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sync Source -> WYSIWYG
     const syncToEditor = () => {
         lastEditedBy = 'source';
-        const html = marked.parse(sourceTextarea.value);
+        const processedMarkdown = processFootnotes(sourceTextarea.value);
+        const html = marked.parse(processedMarkdown);
         if (editor.innerHTML !== html) {
             editor.innerHTML = html;
             // Enable checkboxes for task lists and fix structure
@@ -262,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'code-block-wrapper';
                 wrapper.setAttribute('data-lang', lang || 'text');
-                wrapper.innerHTML = `<div class="code-block-header" contenteditable="false"><span class="code-lang-tag" title="Klicka för att ändra språk">${displayLang}</span></div>`;
+                wrapper.innerHTML = `<div class="code-block-header" contenteditable="false"><span class="code-lang-tag" title="Click to change language">${displayLang}</span></div>`;
                 pre.parentNode.insertBefore(wrapper, pre);
                 wrapper.appendChild(pre);
             });
@@ -308,24 +377,364 @@ document.addEventListener('DOMContentLoaded', () => {
         headers.forEach(h => {
             const item = document.createElement('div');
             item.className = `outline-item ${h.tagName.toLowerCase()}`;
-            item.innerText = h.innerText || 'Rubrik saknas';
+            item.innerText = h.innerText || 'Missing heading';
             item.onclick = () => h.scrollIntoView({ behavior: 'smooth', block: 'start' });
             outlineContent.appendChild(item);
         });
     };
 
+    // --- Document Management ---
+    let documents = JSON.parse(localStorage.getItem('md-flow-documents')) || [];
+    let currentDocId = localStorage.getItem('md-flow-current-doc-id') || null;
+
+    const docListEl = document.getElementById('doc-list');
+    const newDocBtn = document.getElementById('new-doc-btn');
+
+    // Generate UUID-like ID
+    const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
+
     const saveToLocalStorage = () => {
+        // Find current doc and update it
+        if (currentDocId) {
+            const docIndex = documents.findIndex(d => d.id === currentDocId);
+            if (docIndex !== -1) {
+                // Update content
+                documents[docIndex].content = editor.innerHTML;
+
+                // Update title based on first heading or first line
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = editor.innerHTML;
+                let title = 'Untitled document';
+                const h1 = tempDiv.querySelector('h1');
+                if (h1 && h1.innerText.trim()) {
+                    title = h1.innerText.trim();
+                } else {
+                    const firstLine = tempDiv.innerText.split('\n')[0].trim();
+                    if (firstLine) title = firstLine.substring(0, 30) + (firstLine.length > 30 ? '...' : '');
+                }
+                // If title is still empty/generic and content is empty, keep it generic or empty
+                if (editor.innerText.trim() === '') {
+                     title = 'Untitled document';
+                }
+
+                documents[docIndex].title = title;
+                documents[docIndex].updatedAt = Date.now();
+            }
+        }
+
+        localStorage.setItem('md-flow-documents', JSON.stringify(documents));
+        localStorage.setItem('md-flow-current-doc-id', currentDocId);
+
+        // Also save legacy single-doc for backup/compatibility
         localStorage.setItem('md-flow-content', editor.innerHTML);
+
+        renderDocList();
     };
+
+    const createWelcomeDocument = () => {
+        const welcomeDoc = {
+            id: generateId(),
+            title: 'Welcome to mdbase',
+            content: `
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <i class="ph-fill ph-pen-nib" style="font-size: 4rem; color: var(--accent);"></i>
+                    <h1 style="margin-top: 1rem;">Welcome to mdbase</h1>
+                    <p style="color: var(--text-secondary); font-size: 1.2rem;">Your new distraction-free writing space.</p>
+                </div>
+                <hr>
+                <h2>Get Started</h2>
+                <p>mdbase is designed to help you focus on your writing. Here are some things you can do:</p>
+                <ul>
+                    <li><strong>Write freely:</strong> Use Markdown or the toolbar.</li>
+                    <li><strong>Format:</strong> Select text to see options.</li>
+                    <li><strong>Structure:</strong> Use headings to create an automatic Outline.</li>
+                </ul>
+                <h2>Features</h2>
+                <ul>
+                    <li>✅ <strong>Auto-save:</strong> Everything is saved locally in your browser.</li>
+                    <li>✅ <strong>Multi-document:</strong> Manage multiple drafts at once.</li>
+                    <li>✅ <strong>HTML Export:</strong> Download your work as HTML.</li>
+                </ul>
+                <p><em>Start writing here or create a new document in the menu/sidebar to start a blank sheet.</em></p>
+            `,
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+        };
+        documents.push(welcomeDoc);
+        switchDocument(welcomeDoc.id);
+    };
+
+    const loadDocuments = () => {
+        if (documents.length === 0) {
+            // Check for legacy content
+            const legacyContent = localStorage.getItem('md-flow-content');
+            // Check if legacy content is just the old default template
+            const isOldDefault = legacyContent && legacyContent.includes('Välkommen till din nya editor');
+
+            if (legacyContent && legacyContent.trim().length > 50 && !isOldDefault) { // Only keep legacy if substantial and not default
+                const newDoc = {
+                    id: generateId(),
+                    title: 'Restored draft',
+                    content: legacyContent,
+                    createdAt: Date.now(),
+                    updatedAt: Date.now()
+                };
+                documents.push(newDoc);
+                currentDocId = newDoc.id;
+                saveToLocalStorage();
+            } else {
+                createWelcomeDocument();
+            }
+        }
+
+        // Ensure valid currentDocId
+        if (!currentDocId || !documents.find(d => d.id === currentDocId)) {
+            currentDocId = documents[0].id;
+        }
+
+        // Load content
+        const currentDoc = documents.find(d => d.id === currentDocId);
+        if (currentDoc) {
+            editor.innerHTML = currentDoc.content;
+            syncToSource();
+            // Reset undo stack for new document
+            if (typeof undoStack !== 'undefined') {
+                undoStack.length = 0;
+                undoStack.push(currentDoc.content);
+                redoStack.length = 0;
+            }
+        }
+
+        renderDocList();
+    };
+
+    const createNewDocument = () => {
+        const newDoc = {
+            id: generateId(),
+            title: '', // Title will be set on first save
+            content: '', // Start empty
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+        };
+        documents.unshift(newDoc);
+        switchDocument(newDoc.id);
+        // Focus editor immediately
+        editor.focus();
+    };
+
+    const deleteDocument = (id, e) => {
+        e.stopPropagation();
+        if (confirm('Are you sure you want to delete this document?')) {
+            documents = documents.filter(d => d.id !== id);
+            if (documents.length === 0) {
+                createWelcomeDocument();
+            } else if (currentDocId === id) {
+                switchDocument(documents[0].id);
+            } else {
+                saveToLocalStorage();
+            }
+        }
+    };
+
+    const switchDocument = (id) => {
+        // Save current before switching
+        if (currentDocId) {
+             const docIndex = documents.findIndex(d => d.id === currentDocId);
+             if (docIndex !== -1) {
+                 documents[docIndex].content = editor.innerHTML;
+             }
+        }
+
+        currentDocId = id;
+        const widthDoc = documents.find(d => d.id === id);
+        if (widthDoc) {
+            editor.innerHTML = widthDoc.content;
+            syncToSource();
+             // Reset undo stack for new document
+            if (typeof undoStack !== 'undefined') {
+                undoStack.length = 0;
+                undoStack.push(widthDoc.content);
+                redoStack.length = 0;
+            }
+        }
+        saveToLocalStorage();
+    };
+
+    const renderDocList = () => {
+        if (!docListEl) return;
+        docListEl.innerHTML = '';
+
+        documents.forEach(doc => {
+            const item = document.createElement('div');
+            item.className = `doc-item ${doc.id === currentDocId ? 'active' : ''}`;
+            item.onclick = () => switchDocument(doc.id);
+
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'doc-name';
+            titleSpan.innerText = doc.title || 'Untitled';
+
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'doc-actions';
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'doc-btn-delete';
+            deleteBtn.innerHTML = '<i class="ph ph-trash"></i>';
+            deleteBtn.onclick = (e) => deleteDocument(doc.id, e);
+
+            actionsDiv.appendChild(deleteBtn);
+            item.appendChild(titleSpan);
+            item.appendChild(actionsDiv);
+
+            docListEl.appendChild(item);
+        });
+    };
+
+    if (newDocBtn) newDocBtn.onclick = createNewDocument;
+
+    // Load initial docs
+    // Call this at the end of DOMContentLoaded or init
+    // setTimeout to ensure other inits are done
+    setTimeout(loadDocuments, 0);
 
     // --- Commands ---
     const commands = [
         { name: 'Toggle Split View', icon: 'ph-columns', action: toggleSplitView, shortcut: 'Cmd+J' },
         { name: 'Toggle Outline', icon: 'ph-list-numbers', action: () => outlineBtn?.click(), shortcut: 'Cmd+O' },
-        { name: 'Exportera HTML', icon: 'ph-download', action: () => exportHtmlBtn?.click() },
-        { name: 'Finn & Ersätt', icon: 'ph-magnifying-glass', action: () => findBox?.classList.remove('hidden'), shortcut: 'Cmd+F' },
-        { name: 'Skriv ut (PDF)', icon: 'ph-printer', action: () => window.print() }
+        { name: 'Export HTML', icon: 'ph-download', action: () => exportHtmlBtn?.click() },
+        { name: 'Find & Replace', icon: 'ph-magnifying-glass', action: () => findBox?.classList.remove('hidden'), shortcut: 'Cmd+F' },
+        { name: 'Print (PDF)', icon: 'ph-printer', action: () => window.print() }
     ];
+
+    // Keyboard Shortcuts Handler - using window and capture phase for earliest interception
+    window.addEventListener('keydown', (e) => {
+        const isCmdOrCtrl = e.metaKey || e.ctrlKey;
+        const key = e.key.toLowerCase();
+
+        // Debug logging
+        if (isCmdOrCtrl) {
+            console.log('SHORTCUT DEBUG:', { key, metaKey: e.metaKey, ctrlKey: e.ctrlKey });
+        }
+
+        // Skip if we're in an input field that's not our editor or source
+        const activeEl = document.activeElement;
+        const inSource = activeEl === sourceTextarea;
+        const inEditor = activeEl === editor;
+        const inOurApp = inSource || inEditor || activeEl === document.body;
+
+        if (!isCmdOrCtrl) return;
+
+        // Cmd/Ctrl + J: Toggle Split View
+        if (key === 'j') {
+            console.log('Cmd+J detected, toggling split view');
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('toggle-split-view')?.click();
+            return;
+        }
+
+        // Cmd/Ctrl + O: Toggle Outline
+        if (key === 'o') {
+            e.preventDefault();
+            outlineBtn?.click();
+            return;
+        }
+
+        // Cmd/Ctrl + F: Find & Replace
+        if (key === 'f') {
+            e.preventDefault();
+            findBox?.classList.remove('hidden');
+            findInput?.focus();
+            return;
+        }
+
+        // Cmd/Ctrl + H: Show Shortcuts
+        if (key === 'h') {
+            e.preventDefault();
+            document.getElementById('shortcuts-modal')?.classList.remove('hidden');
+            return;
+        }
+
+        // Only process formatting shortcuts if we're in our app
+        if (!inOurApp) return;
+
+        // Cmd/Ctrl + B: Bold
+        if (key === 'b') {
+            if (inSource) {
+                e.preventDefault();
+                wrapSourceSelection('**', '**');
+            } else if (inEditor) {
+                // Let browser handle, then sync
+                setTimeout(() => {
+                    updateButtonStates();
+                    syncToSource();
+                }, 10);
+            }
+            return;
+        }
+
+        // Cmd/Ctrl + I: Italic
+        if (key === 'i') {
+            if (inSource) {
+                e.preventDefault();
+                wrapSourceSelection('_', '_');
+            } else if (inEditor) {
+                setTimeout(() => {
+                    updateButtonStates();
+                    syncToSource();
+                }, 10);
+            }
+            return;
+        }
+
+        // Cmd/Ctrl + Alt + 1/2: Headings
+        if (e.altKey) {
+            if (key === '1') {
+                e.preventDefault();
+                if (inSource) {
+                    const start = sourceTextarea.selectionStart;
+                    const text = sourceTextarea.value;
+                    const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+                    sourceTextarea.value = text.substring(0, lineStart) + '# ' + text.substring(lineStart);
+                    syncToEditor();
+                } else {
+                    document.execCommand('formatBlock', false, 'h1');
+                    syncToSource();
+                }
+                return;
+            }
+            if (key === '2') {
+                e.preventDefault();
+                if (inSource) {
+                    const start = sourceTextarea.selectionStart;
+                    const text = sourceTextarea.value;
+                    const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+                    sourceTextarea.value = text.substring(0, lineStart) + '## ' + text.substring(lineStart);
+                    syncToEditor();
+                } else {
+                    document.execCommand('formatBlock', false, 'h2');
+                    syncToSource();
+                }
+                return;
+            }
+        }
+
+        // Cmd/Ctrl + Shift + 8: Bullet List
+        // Cmd/Ctrl + Shift + 7: Numbered List
+        if (e.shiftKey && inEditor) {
+            if (key === '8' || key === '*') {
+                e.preventDefault();
+                document.execCommand('insertUnorderedList');
+                syncToSource();
+                return;
+            }
+            if (key === '7' || key === '&') {
+                e.preventDefault();
+                document.execCommand('insertOrderedList');
+                syncToSource();
+                return;
+            }
+        }
+    }, true); // Use capture phase to intercept before contenteditable
 
     const findAndReplace = (all = false) => {
         const find = findInput.value;
@@ -530,6 +939,83 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle Enter key inside code blocks and other structures
     editor.addEventListener('keydown', (e) => {
+        // Arrow key navigation around non-editable elements like hr
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return;
+
+            let node = selection.anchorNode;
+            // Walk up to find the direct child of editor
+            while (node && node.parentNode !== editor) {
+                node = node.parentNode;
+            }
+            if (!node || node === editor) return;
+
+            const nextSibling = node.nextElementSibling;
+            const prevSibling = node.previousElementSibling;
+
+            // ArrowDown: if next sibling is HR, skip to the element after it
+            if (e.key === 'ArrowDown' && nextSibling?.tagName === 'HR') {
+                e.preventDefault();
+                const target = nextSibling.nextElementSibling;
+                if (target) {
+                    const range = document.createRange();
+                    // Position at the beginning of the target
+                    const firstTextNode = target.querySelector('*') || target;
+                    if (target.firstChild) {
+                        range.setStart(target.firstChild, 0);
+                    } else {
+                        range.setStart(target, 0);
+                    }
+                    range.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                } else {
+                    // No element after hr, create a paragraph
+                    const p = document.createElement('p');
+                    p.innerHTML = '<br>';
+                    nextSibling.after(p);
+                    const range = document.createRange();
+                    range.setStart(p, 0);
+                    range.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+                return;
+            }
+
+            // ArrowUp: if previous sibling is HR, skip to the element before it
+            if (e.key === 'ArrowUp' && prevSibling?.tagName === 'HR') {
+                e.preventDefault();
+                const target = prevSibling.previousElementSibling;
+                if (target) {
+                    const range = document.createRange();
+                    // Position at the end of the target
+                    if (target.lastChild && target.lastChild.nodeType === Node.TEXT_NODE) {
+                        range.setStart(target.lastChild, target.lastChild.textContent.length);
+                    } else if (target.lastChild) {
+                        range.setStartAfter(target.lastChild);
+                    } else {
+                        range.setStart(target, 0);
+                    }
+                    range.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                } else {
+                    // No element before hr, create a paragraph
+                    const p = document.createElement('p');
+                    p.innerHTML = '<br>';
+                    prevSibling.before(p);
+                    const range = document.createRange();
+                    range.setStart(p, 0);
+                    range.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+                return;
+            }
+        }
+
         if (e.key === 'Enter') {
             const pre = getBlockParent('pre');
             const alert = getBlockParent('div', 'alert');
@@ -664,20 +1150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (menuToggle) menuToggle.addEventListener('click', toggleSidebar);
     if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
 
-    // Link Button
-    if (linkBtn) {
-        linkBtn.addEventListener('click', () => {
-            const url = prompt('Ange URL:');
-            if (url) {
-                if (lastFocusedElement === sourceTextarea) {
-                    wrapSourceSelection('[', `](${url})`);
-                } else {
-                    document.execCommand('createLink', false, url);
-                    syncToSource();
-                }
-            }
-        });
-    }
+
 
     // Inline Code Button
     if (inlineCodeBtn) {
@@ -744,7 +1217,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Insert Tasklist
     if (insertTasklistBtn) {
         insertTasklistBtn.addEventListener('click', () => {
-            const taskMd = '\n- [ ] Uppgift 1\n- [ ] Uppgift 2\n';
+            const taskMd = '\n- [ ] Task 1\n- [ ] Task 2\n';
             insertAtCursor(marked.parse(taskMd), taskMd);
         });
     }
@@ -753,9 +1226,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const insertImageBtn = document.getElementById('btn-insert-image');
     if (insertImageBtn) {
         insertImageBtn.addEventListener('click', () => {
-            const url = prompt('Ange bild-URL:');
+            const url = prompt('Enter image URL:');
             if (url) {
-                const alt = prompt('Ange alt-text (beskrivning):', 'Bild') || 'Bild';
+                const alt = prompt('Enter alt text (description):', 'Image') || 'Image';
                 const imgMd = `\n![${alt}](${url})\n`;
                 insertAtCursor(`<img src="${url}" alt="${alt}">`, imgMd);
             }
@@ -766,7 +1239,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const insertHrBtn = document.getElementById('btn-insert-hr');
     if (insertHrBtn) {
         insertHrBtn.addEventListener('click', () => {
-            insertAtCursor('<hr>', '\n---\n');
+            if (lastFocusedElement === sourceTextarea) {
+                const start = sourceTextarea.selectionStart;
+                const end = sourceTextarea.selectionEnd;
+                sourceTextarea.value = sourceTextarea.value.substring(0, start) + '\n---\n\n' + sourceTextarea.value.substring(end);
+                syncToEditor();
+            } else {
+                editor.focus();
+                // Insert HR followed by an empty paragraph for navigation
+                const selection = window.getSelection();
+                const range = selection.getRangeAt(0);
+
+                const hr = document.createElement('hr');
+                const p = document.createElement('p');
+                p.innerHTML = '<br>';
+
+                range.deleteContents();
+                range.insertNode(p);
+                range.insertNode(hr);
+
+                // Move cursor to the paragraph after hr
+                const newRange = document.createRange();
+                newRange.setStart(p, 0);
+                newRange.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+
+                syncToSource();
+            }
         });
     }
 
@@ -780,12 +1280,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const insertType = item.getAttribute('data-insert');
 
                 if (insertType === 'blockquote') {
-                    const md = '\n> Citat här\n';
+                    const md = '\n> Quote here\n';
                     insertAtCursor(marked.parse(md), md);
                 } else {
                     // Alert types
                     const alertType = insertType.replace('alert-', '').toUpperCase();
-                    const md = `\n> [!${alertType}]\n> Skriv din text här\n`;
+                    const md = `\n> [!${alertType}]\n> Write your text here\n`;
                     insertAtCursor(marked.parse(md), md);
                 }
 
@@ -893,11 +1393,67 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeFindBtn) closeFindBtn.onclick = () => findBox.classList.add('hidden');
 
     // Export HTML
-    if (exportHtmlBtn) {
-        exportHtmlBtn.addEventListener('click', () => {
-            const blob = new Blob([editor.innerHTML], { type: 'text/html;charset=utf-8' });
-            saveAs(blob, 'dokument.html');
-        });
+    // Export Handlers
+    const exportMdBtn = document.getElementById('export-md');
+    const exportHtmlBtnNew = document.getElementById('export-html');
+    const exportPdfBtn = document.getElementById('export-pdf');
+
+    const downloadFile = (filename, content, type) => {
+        const blob = new Blob([content], { type: type });
+        saveAs(blob, filename);
+    };
+
+    if (exportMdBtn) {
+        exportMdBtn.onclick = () => {
+            const docTitle = (documents.find(d => d.id === currentDocId)?.title || 'document').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            downloadFile(`${docTitle}.md`, sourceTextarea.value, 'text/markdown;charset=utf-8');
+        };
+    }
+
+    if (exportHtmlBtnNew) {
+        exportHtmlBtnNew.onclick = () => {
+            const docTitle = documents.find(d => d.id === currentDocId)?.title || 'Document';
+            const cleanTitle = docTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+            // Create a complete HTML document
+            const fullHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>${docTitle}</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #333; }
+        img { max-width: 100%; }
+        blockquote { border-left: 4px solid #ddd; padding-left: 1rem; color: #666; margin-left: 0; }
+        pre { background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto; }
+        code { font-family: monospace; background: #f5f5f5; padding: 0.2rem 0.4rem; border-radius: 3px; }
+        hr { border: none; border-top: 2px solid #eee; margin: 2rem 0; }
+        table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+        th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+        th { background-color: #f9f9f9; }
+        /* Checkboxes */
+        li.task-list-item { list-style: none; margin-left: -1.5em; }
+        input[type="checkbox"] { margin-right: 0.5em; }
+    </style>
+</head>
+<body>
+    ${editor.innerHTML}
+</body>
+</html>`;
+            downloadFile(`${cleanTitle}.html`, fullHtml, 'text/html;charset=utf-8');
+        };
+    }
+
+    if (exportPdfBtn) {
+        exportPdfBtn.onclick = () => {
+            if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+            }
+            // Small delay to allow UI to update (close menus, apply styles)
+            setTimeout(() => {
+                window.print();
+            }, 50);
+        };
     }
 
 

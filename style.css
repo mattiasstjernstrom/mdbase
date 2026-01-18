@@ -116,6 +116,95 @@ html, body {
     font-size: 1.25rem;
 }
 
+.nav-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.doc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+    overflow-y: auto;
+    max-height: 40vh;
+}
+
+.doc-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 1rem;
+    border-radius: 0.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    text-decoration: none;
+    user-select: none;
+}
+
+.doc-item:hover {
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+}
+
+.doc-item.active {
+    background-color: var(--accent-light);
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.doc-item .doc-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.doc-actions {
+    display: flex;
+    gap: 0.25rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.doc-item:hover .doc-actions {
+    opacity: 1;
+}
+
+.doc-btn-delete {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.doc-btn-delete:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.nav-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 1rem 0;
+}
+
 .sidebar-footer {
     padding-top: 1rem;
     border-top: 1px solid var(--border-color);
@@ -559,21 +648,31 @@ html, body {
     padding: 2rem;
 }
 .toolbar {
-    background: white;
+    position: sticky;
+    top: 1rem;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     margin: 0 2rem 1rem 2rem;
-    padding: 0.5rem 1rem;
-    border-radius: 0.75rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 1rem;
     display: flex;
     align-items: center;
-    gap: 1rem;
-    box-shadow: var(--shadow-sm);
+    gap: 0.75rem;
+    box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05);
     width: fit-content;
     max-width: 90%;
-    align-self: center; /* Center toolbar visually */
-    border: 1px solid var(--border-color);
-    overflow: visible; /* Allow tooltips to show */
+    align-self: center;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    overflow: visible;
     -webkit-overflow-scrolling: touch;
     flex-shrink: 0;
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.toolbar:hover {
+    box-shadow: 0 8px 30px -6px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
 .toolbar-group {
@@ -591,33 +690,37 @@ html, body {
 }
 
 .tool-btn {
-    position: relative; /* For Pro badge */
-    width: 36px;
-    height: 36px;
+    position: relative;
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
     border: none;
     background: transparent;
-    border-radius: 0.375rem;
+    border-radius: 0.5rem;
     color: var(--text-secondary);
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 1.1rem;
     flex-shrink: 0;
 }
 
 .tool-btn:hover {
-    background-color: var(--bg-app);
-    color: var(--text-primary);
+    background-color: rgba(99, 102, 241, 0.1);
+    color: var(--accent);
+    transform: translateY(-1px);
 }
 
+.tool-btn:active {
+    transform: translateY(0) scale(0.95);
+}
 
 /* Active State for Toolbar Buttons */
 .tool-btn.active {
-    background-color: rgba(59, 130, 246, 0.15);
-    color: #3b82f6;
-    box-shadow: inset 0 0 0 2px #3b82f6;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(59, 130, 246, 0.15));
+    color: var(--accent);
+    box-shadow: inset 0 0 0 1.5px var(--accent);
 }
 
 /* Toolbar Dropdown Menu */
@@ -638,7 +741,18 @@ html, body {
     box-shadow: var(--shadow-md);
     min-width: 140px;
     z-index: 1000;
-    overflow: hidden;
+    overflow: visible; /* Changed from hidden to allow bridge */
+}
+
+/* Invisible bridge to prevent closing on gap */
+.tool-btn-dropdown .dropdown-menu::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 0;
+    width: 100%;
+    height: 10px;
+    background: transparent;
 }
 
 .tool-btn-dropdown:hover .dropdown-menu,
@@ -995,7 +1109,7 @@ html, body {
 
 /* Task List / Checkbox Styling */
 .editor-content ul {
-    list-style: none;
+    list-style: disc;
     padding-left: 1.5rem;
 }
 
@@ -1460,6 +1574,19 @@ textarea#markdown-input {
         display: none;
     }
 
+
+
+
+
+
+
+
+
+    /* Preserve formatting colors if user enables background graphics */
+
+
+
+
     .actions span {
         display: none; /* Hide button text, show only icons */
     }
@@ -1547,3 +1674,57 @@ textarea#markdown-input {
 
 /* Custom Tooltip Specifics for GFM/Pro */
 /* (Currently handled by text content, but we could add specific styling if needed) */
+
+@media print {
+    .sidebar, .toolbar, .top-bar, .stats-bar, .source-header, .editor-header, .new-doc-btn, .nav-menu, .tool-btn-dropdown,
+    #sidebar, #menu-toggle, #export-dropdown, .actions, #outline-sidebar, #source-wrapper,
+    .dropdown-menu, .sidebar-overlay {
+        display: none !important;
+    }
+
+    .app-container {
+        height: auto;
+        overflow: visible;
+    }
+
+    .editor-area {
+        height: auto;
+        overflow: visible;
+        margin-left: 0 !important;
+        width: 100% !important;
+        display: block !important;
+    }
+
+    .editor-wrapper {
+        height: auto;
+        overflow: visible;
+        padding: 0;
+    }
+
+    .editor-content {
+        height: auto;
+        overflow: visible;
+        box-shadow: none;
+        padding: 0;
+        max-width: 100%;
+        margin: 0 !important;
+        border: none !important;
+    }
+
+    /* Preserve formatting colors if user enables background graphics */
+    body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        background-color: white;
+    }
+
+    /* Ensure text is black for printing */
+    .editor-content, .editor-content * {
+        color: black !important;
+    }
+
+    /* Hide scrollbars */
+    ::-webkit-scrollbar {
+        display: none;
+    }
+}

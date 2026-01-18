@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Markdown Flow | WYSIWYG Editor</title>
+    <title>mdbase | WYSIWYG Editor</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -92,25 +92,23 @@
         <aside class="sidebar">
             <div class="brand">
                 <i class="ph-fill ph-pen-nib"></i>
-                <span>Flow</span>
+                <span>mdbase</span>
             </div>
 
             <nav class="nav-menu">
-                <button class="nav-item active">
-                    <i class="ph ph-file-text"></i>
-                    <span>Utkast</span>
-                </button>
-                <button class="nav-item">
-                    <i class="ph ph-folder"></i>
-                    <span>Mina Dokument</span>
-                </button>
-                <button class="nav-item">
-                    <i class="ph ph-gear"></i>
-                    <span>Inställningar</span>
-                </button>
+                <div class="nav-section-header">
+                    <span>Documents</span>
+                    <button id="new-doc-btn" class="btn secondary icon-only small" data-tooltip="New document">
+                        <i class="ph ph-plus"></i>
+                    </button>
+                </div>
+                <div id="doc-list" class="doc-list">
+                    <!-- Documents will be rendered here -->
+                </div>
+                <div class="nav-divider"></div>
                 <button id="shortcuts-btn" class="nav-item">
                     <i class="ph ph-keyboard"></i>
-                    <span>Kortkommandon</span>
+                    <span>Shortcuts</span>
                 </button>
                 <button id="outline-btn" class="nav-item">
                     <i class="ph ph-list-numbers"></i>
@@ -120,9 +118,9 @@
 
             <div class="sidebar-footer">
                 <div class="user-profile">
-                    <div class="avatar">M</div>
+                    <div class="avatar">G</div>
                     <div class="user-info">
-                        <span class="name">Mattias</span>
+                        <span class="name">Guest</span>
                     </div>
                 </div>
             </div>
@@ -141,51 +139,63 @@
                         <i class="ph ph-columns"></i>
                         <span>Split View</span>
                     </button>
-                    <button id="export-html" class="btn secondary">
-                        <i class="ph ph-download"></i>
-                        <span>Exportera</span>
-                    </button>
-                    <button class="btn primary" onclick="window.print()">
-                        <i class="ph ph-printer"></i>
-                        <span>PDF</span>
-                    </button>
+                    <div class="tool-btn-dropdown" id="export-dropdown">
+                        <button class="btn secondary">
+                            <i class="ph ph-download"></i>
+                            <span>Export</span>
+                            <i class="ph ph-caret-down" style="font-size: 0.8em; margin-left: 4px;"></i>
+                        </button>
+                        <div class="dropdown-menu">
+                            <button class="dropdown-item" id="export-md">
+                                <i class="ph ph-file-md"></i> Markdown (.md)
+                            </button>
+                            <button class="dropdown-item" id="export-html">
+                                <i class="ph ph-file-html"></i> HTML (.html)
+                            </button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item" id="export-pdf">
+                                <i class="ph ph-printer"></i> PDF (via Print)
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </header>
 
             <!-- Formatting Toolbar (Floating or Sticky) -->
             <div class="toolbar">
                 <div class="toolbar-group">
-                    <button class="tool-btn" data-command="formatBlock" data-value="h1" data-tooltip="Rubrik 1">
+                    <button class="tool-btn" data-command="formatBlock" data-value="h1" data-tooltip="Heading 1">
                         <span style="font-weight: 700; font-size: 1.1em;">H1</span>
                     </button>
-                    <button class="tool-btn" data-command="formatBlock" data-value="h2" data-tooltip="Rubrik 2">
+                    <button class="tool-btn" data-command="formatBlock" data-value="h2" data-tooltip="Heading 2">
                         <span style="font-weight: 600;">H2</span>
                     </button>
                 </div>
                 <div class="divider"></div>
                 <div class="toolbar-group">
-                    <button class="tool-btn" data-command="bold" data-tooltip="Fetstil">
+                    <button class="tool-btn" data-command="bold" data-tooltip="Bold">
                         <i class="ph ph-text-b"></i>
                     </button>
-                    <button class="tool-btn" data-command="italic" data-tooltip="Kursiv">
+                    <button class="tool-btn" data-command="italic" data-tooltip="Italic">
                         <i class="ph ph-text-italic"></i>
                     </button>
-                    <button class="tool-btn" data-command="strikeThrough" data-tooltip="Genomstruken">
+                    <button class="tool-btn" data-command="strikeThrough" data-tooltip="Strikethrough">
                         <i class="ph ph-text-strikethrough"></i>
                     </button>
-                    <button class="tool-btn" data-command="underline" data-tooltip="Understrykning">
+                    <button class="tool-btn" data-command="underline" data-tooltip="Underline">
                         <i class="ph ph-text-underline"></i>
                     </button>
-                    <button class="tool-btn" id="btn-subscript" data-tooltip="Nedsänkt">
+                    <button class="tool-btn" id="btn-subscript" data-tooltip="Subscript">
                         <i class="ph ph-text-subscript"></i>
                     </button>
-                    <button class="tool-btn" id="btn-superscript" data-tooltip="Upphöjd">
+                    <button class="tool-btn" id="btn-superscript" data-tooltip="Superscript">
                         <i class="ph ph-text-superscript"></i>
                     </button>
                 </div>
                 <div class="divider"></div>
                 <div class="toolbar-group">
-                    <button class="tool-btn" data-command="formatBlock" data-value="pre" data-tooltip="Kodblock">
+                    <button class="tool-btn" data-command="formatBlock" data-value="pre" data-tooltip="Code Block">
                         <i class="ph ph-code-block"></i>
                     </button>
                     <button class="tool-btn" id="inline-code-btn" data-tooltip="Inline Code">
@@ -194,23 +204,21 @@
                 </div>
                 <div class="divider"></div>
                 <div class="toolbar-group">
-                    <button class="tool-btn" data-command="insertUnorderedList" data-tooltip="Punktlista">
+                    <button class="tool-btn" data-command="insertUnorderedList" data-tooltip="Bulleted List">
                         <i class="ph ph-list-bullets"></i>
                     </button>
-                    <button class="tool-btn" data-command="insertOrderedList" data-tooltip="Numrerad lista">
+                    <button class="tool-btn" data-command="insertOrderedList" data-tooltip="Numbered List">
                         <i class="ph ph-list-numbers"></i>
                     </button>
-                    <button class="tool-btn" id="link-btn" data-tooltip="Länk">
-                        <i class="ph ph-link"></i>
-                    </button>
+
                     <div class="tool-btn-dropdown" id="quote-dropdown">
-                        <button class="tool-btn" data-tooltip="Citat / Varningar">
+                        <button class="tool-btn" data-tooltip="Quote / Alerts">
                             <i class="ph ph-quotes"></i>
                             <i class="ph ph-caret-down" style="font-size: 0.6em; margin-left: 2px;"></i>
                         </button>
                         <div class="dropdown-menu">
                             <button class="dropdown-item" data-insert="blockquote">
-                                <i class="ph ph-quotes"></i> Citat
+                                <i class="ph ph-quotes"></i> Quote
                             </button>
                             <div class="dropdown-divider"></div>
                             <button class="dropdown-item" data-insert="alert-note">
@@ -233,16 +241,16 @@
                 </div>
                 <div class="divider"></div>
                 <div class="toolbar-group">
-                    <button class="tool-btn" id="btn-insert-table" data-tooltip="Infoga Tabell">
+                    <button class="tool-btn" id="btn-insert-table" data-tooltip="Insert Table">
                         <i class="ph ph-table"></i>
                     </button>
-                    <button class="tool-btn" id="btn-insert-tasklist" data-tooltip="Checklista">
+                    <button class="tool-btn" id="btn-insert-tasklist" data-tooltip="Checklist">
                         <i class="ph ph-check-square-offset"></i>
                     </button>
-                    <button class="tool-btn" id="btn-insert-image" data-tooltip="Infoga Bild">
+                    <button class="tool-btn" id="btn-insert-image" data-tooltip="Insert Image">
                         <i class="ph ph-image"></i>
                     </button>
-                    <button class="tool-btn" id="btn-insert-hr" data-tooltip="Horisontell linje">
+                    <button class="tool-btn" id="btn-insert-hr" data-tooltip="Horizontal Rule">
                         <i class="ph ph-minus"></i>
                     </button>
                 </div>
@@ -263,30 +271,26 @@
 
                 <!-- WYSIWYG Editor Canvas -->
                 <div class="editor-wrapper" id="wysiwyg-wrapper">
-                    <div id="editor" class="editor-content" contenteditable="true" spellcheck="false">
-                        <h2>Välkommen till din nya editor</h2>
-                        <p>Börja skriva din fantastiska text här. Markera text för att formatera.</p>
-                        <p>Prova att använda <b>fetstil</b> eller <i>kursiv</i> text.</p>
-                    </div>
+                    <div id="editor" class="editor-content" contenteditable="true" spellcheck="false"></div>
                 </div>
 
                 <!-- Markdown Source View (for Split View) -->
                 <div class="preview-wrapper hidden" id="source-wrapper">
                     <div class="source-header">
                         <span>Markdown</span>
-                        <button id="copy-source" class="btn secondary icon-only small" data-tooltip="Kopiera">
+                        <button id="copy-source" class="btn secondary icon-only small" data-tooltip="Copy">
                             <i class="ph ph-copy"></i>
                         </button>
                     </div>
-                    <textarea id="source-textarea" spellcheck="false" placeholder="Skriv Markdown här..."></textarea>
+                    <textarea id="source-textarea" spellcheck="false" placeholder="Write Markdown here..."></textarea>
                 </div>
             </div>
 
             <!-- Stats Bar -->
             <footer class="stats-bar">
-                <span id="word-count">0 ord</span>
+                <span id="word-count">0 words</span>
                 <span class="separator">•</span>
-                <span id="read-time">Mind re 1 min läsning</span>
+                <span id="read-time">~ 1 min read</span>
             </footer>
         </main>
 
@@ -296,42 +300,39 @@
         <div id="shortcuts-modal" class="modal hidden">
             <div class="modal-content shortcuts-content">
                 <div class="modal-header">
-                    <h2>Kortkommandon</h2>
+                    <h2>Shortcuts</h2>
                     <button id="close-shortcuts-modal" class="close-btn"><i class="ph ph-x"></i></button>
                 </div>
                 <div class="modal-body">
                     <div class="shortcuts-grid">
                         <div class="shortcut-item">
-                            <span class="shortcut-desc">Rubrik 1</span>
+                            <span class="shortcut-desc">Heading 1</span>
                             <div class="keys"><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>1</kbd></div>
                         </div>
                         <div class="shortcut-item">
-                            <span class="shortcut-desc">Rubrik 2</span>
+                            <span class="shortcut-desc">Heading 2</span>
                             <div class="keys"><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>2</kbd></div>
                         </div>
                         <div class="shortcut-item">
-                            <span class="shortcut-desc">Punktlista</span>
+                            <span class="shortcut-desc">Bulleted List</span>
                             <div class="keys"><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>8</kbd></div>
                         </div>
                         <div class="shortcut-item">
-                            <span class="shortcut-desc">Numrerad lista</span>
+                            <span class="shortcut-desc">Numbered List</span>
                             <div class="keys"><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>7</kbd></div>
                         </div>
                         <div class="shortcut-item">
-                            <span class="shortcut-desc">Fetstil</span>
+                            <span class="shortcut-desc">Bold</span>
                             <div class="keys"><kbd>Ctrl</kbd> + <kbd>B</kbd></div>
                         </div>
                         <div class="shortcut-item">
-                            <span class="shortcut-desc">Kursiv</span>
+                            <span class="shortcut-desc">Italic</span>
                             <div class="keys"><kbd>Ctrl</kbd> + <kbd>I</kbd></div>
                         </div>
+
                         <div class="shortcut-item">
-                            <span class="shortcut-desc">Länk</span>
-                            <div class="keys"><kbd>Ctrl</kbd> + <kbd>K</kbd></div>
-                        </div>
-                         <div class="shortcut-item">
-                            <span class="shortcut-desc">Visa denna meny</span>
-                            <div class="keys"><kbd>Ctrl</kbd> + <kbd>/</kbd></div>
+                            <span class="shortcut-desc">Show this menu</span>
+                            <div class="keys"><kbd>Ctrl</kbd> + <kbd>H</kbd></div>
                         </div>
                     </div>
                 </div>
@@ -343,19 +344,19 @@
         <div id="language-modal" class="modal hidden">
             <div class="modal-content shortcuts-content" style="max-width: 400px;">
                 <div class="modal-header">
-                    <h2>Kodspråk</h2>
+                    <h2>Code Language</h2>
                     <button id="close-language-modal" class="btn secondary icon-only small"><i class="ph ph-x"></i></button>
                 </div>
                 <div class="modal-body" style="background: white; color: var(--text-primary); padding: 1.5rem; display: block;">
-                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Ange programmeringsspråk (t.ex. javascript, py, css):</p>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Enter programming language (e.g., javascript, py, css):</p>
                     <div class="command-input-container" style="border: 1px solid var(--border-color); border-radius: 0.5rem; background: #f9fafb;">
                         <i class="ph ph-code" style="color: var(--text-secondary);"></i>
                         <input type="text" id="language-input" placeholder="javascript" style="background: transparent; border: none; outline: none; padding: 0.5rem; width: 100%; color: var(--text-primary); font-family: var(--font-mono);">
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button id="save-language" class="btn primary">Spara</button>
-                    <button id="cancel-language" class="btn secondary">Avbryt</button>
+                    <button id="save-language" class="btn primary">Save</button>
+                    <button id="cancel-language" class="btn secondary">Cancel</button>
                 </div>
             </div>
             <div class="modal-backdrop"></div>
@@ -368,7 +369,7 @@
             <div class="command-palette-content">
                 <div class="command-input-container">
                     <i class="ph ph-magnifying-glass"></i>
-                    <input type="text" id="command-input" placeholder="Vad vill du göra? (t.ex. 'Exportera', 'Dark Mode'...)" autocomplete="off">
+                    <input type="text" id="command-input" placeholder="What would you like to do? (e.g. 'Export', 'Dark Mode'...)" autocomplete="off">
                 </div>
                 <div id="command-results" class="command-results">
                     <!-- Results populated by JS -->
@@ -380,17 +381,17 @@
         <!-- Find & Replace Bar -->
         <div id="find-box" class="find-replace-bar hidden">
             <div class="find-inputs">
-                <input type="text" id="find-input" placeholder="Sök...">
-                <input type="text" id="replace-input" placeholder="Ersätt med...">
+                <input type="text" id="find-input" placeholder="Search...">
+                <input type="text" id="replace-input" placeholder="Replace with...">
             </div>
             <div class="find-actions">
-                <button id="find-next" class="btn secondary small" title="Nästa"><i class="ph ph-caret-down"></i></button>
-                <button id="replace-btn" class="btn secondary" title="Ersätt">Ersätt</button>
-                <button id="replace-all-btn" class="btn secondary" title="Ersätt alla">Alla</button>
+                <button id="find-next" class="btn secondary small" title="Next"><i class="ph ph-caret-down"></i></button>
+                <button id="replace-btn" class="btn secondary" title="Replace">Replace</button>
+                <button id="replace-all-btn" class="btn secondary" title="Replace All">All</button>
                 <button id="close-find" class="btn secondary icon-only small"><i class="ph ph-x"></i></button>
             </div>
         </div>
 
-        <script src="script.js"></script>
+        <script src="script.js?v=6"></script>
     </body>
 </html>
