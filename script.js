@@ -1391,6 +1391,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (menuToggle) menuToggle.addEventListener('click', toggleSidebar);
     if (closeDashboardBtn) closeDashboardBtn.addEventListener('click', toggleSidebar);
 
+    // Close dashboard when clicking outside the bento cards
+    if (sidebar) {
+        sidebar.addEventListener('click', (e) => {
+            if (e.target === sidebar || e.target.classList.contains('dashboard-content')) {
+                sidebar.classList.remove('active');
+            }
+        });
+    }
+
     const updateDashboardStats = () => {
         const totalDocsCount = document.getElementById('total-docs-count');
         if (totalDocsCount && documents) {
