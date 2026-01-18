@@ -35,8 +35,7 @@ Stay organized with ease:
 
 ## ⚡ Power Features
 
-We support **GitHub Flavored Markdown** and more!
-
+We support **GitHub Flavored Markdown** and ...
 - **Tables** for structured data.
 - **Blockquotes** for impactful citations.
 - **Footnotes** for extra context.
@@ -44,7 +43,7 @@ We support **GitHub Flavored Markdown** and more!
 ## 🔮 Upcoming Features
 
 - **Mermaid diagrams** for visual storytelling.
-- **Mathematical formulas** via $\LaTeX$.
+- **Mathematical formulas** via $LaTeX$.
 
 ### 💻 Syntax Highlighting
 
