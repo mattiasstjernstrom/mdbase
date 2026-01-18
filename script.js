@@ -451,29 +451,22 @@ document.addEventListener('DOMContentLoaded', () => {
         renderDocList();
     };
 
-    const createWelcomeDocument = () => {
-        const markdownContent = `![mdbase Logo](logotype.png)
+    const createWelcomeDocument = async () => {
+        let markdownContent;
+        try {
+            const response = await fetch('welcome.md');
+            if (response.ok) {
+                markdownContent = await response.text();
+            } else {
+                throw new Error('Failed to load welcome.md');
+            }
+        } catch (e) {
+            console.warn('Could not load welcome.md (requires web server), using fallback.');
+            markdownContent = `![mdbase Logo](logotype.png)
 
-# Welcome to mdbase
-
-Your new distraction-free writing space.
-
-## 🚀 Get Started
-
-mdbase is designed to help you focus on your writing. Here are some things you can do:
-
-*   **Write freely** – Use Markdown shortcuts or the toolbar
-*   **Format** – Select text to see options or use syntax like \`**bold**\` or \\*\\*bold\\*\\*
-*   **Structure** – Use headings (\\#) to create an automatic Outline
-
-## ✨ Features
-
-*   ✅ **Auto-save** – Everything is saved locally in your browser
-*   ✅ **Multi-document** – Manage multiple drafts at once
-*   ✅ **HTML Export** – Download your work as HTML
-
-> [!NOTE]
-> Start writing here or create a new document in the menu/sidebar to start a blank sheet.`;
+> [!WARNING]
+> Failed to load default document.`;
+        }
 
         const welcomeDoc = {
             id: generateId(),
@@ -486,7 +479,7 @@ mdbase is designed to help you focus on your writing. Here are some things you c
         switchDocument(welcomeDoc.id);
     };
 
-    const loadDocuments = () => {
+    const loadDocuments = async () => {
         if (documents.length === 0) {
             // Check for legacy content
             const legacyContent = localStorage.getItem('md-flow-content');
@@ -505,7 +498,7 @@ mdbase is designed to help you focus on your writing. Here are some things you c
                 currentDocId = newDoc.id;
                 saveToLocalStorage();
             } else {
-                createWelcomeDocument();
+                await createWelcomeDocument();
             }
         }
 
@@ -544,12 +537,12 @@ mdbase is designed to help you focus on your writing. Here are some things you c
         editor.focus();
     };
 
-    const deleteDocument = (id, e) => {
+    const deleteDocument = async (id, e) => {
         e.stopPropagation();
         if (confirm('Are you sure you want to delete this document?')) {
             documents = documents.filter(d => d.id !== id);
             if (documents.length === 0) {
-                createWelcomeDocument();
+                await createWelcomeDocument();
             } else if (currentDocId === id) {
                 switchDocument(documents[0].id);
             } else {

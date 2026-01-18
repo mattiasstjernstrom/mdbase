@@ -1345,8 +1345,7 @@ html, body {
     max-width: 100%;
     height: auto;
     border-radius: 0.5rem;
-    box-shadow: var(--shadow-sm);
-    margin: 1rem 0;
+    margin: 0.5rem 0;
 }
 
 /* Stats Bar */
