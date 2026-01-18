@@ -2,21 +2,55 @@
 
 # Welcome to mdbase
 
-Your new distraction-free writing space.
+**Your new superpower for distraction-free writing.** 🚀
 
-## 🚀 Get Started
+---
 
-**mdbase** is designed to help you focus on your writing. Here are some things you can do:
+**mdbase** isn't just another editor. It's a clean canvas for your thoughts, powered by the web's most versatile format: **Markdown**. Whether you're drafting a novel, documenting code, or just taking notes, we've got you covered. Or when you wan't to see how your Github profile looks like in Markdown, you can use _mdbase_!
 
-*   **Write freely** – Use Markdown shortcuts or the toolbar
-*   **Format** – Select text to see options or use syntax like `**bold**` or \*\*bold\*\*
-*   **Structure** – Use headings (\#) to create an automatic Outline
+## 🎨 Formatting Playground
 
-## ✨ Features
+Don't just write—*express* yourself.
 
-*   ✅ **Auto-save** – Everything is saved locally in your browser
-*   ✅ **Multi-document** – Manage multiple drafts at once
-*   ✅ **HTML Export** – Download your work as HTML
+- **Bold** ideas stand out.
+- *Italic* nuances matter.
+- ~~Bad ideas~~ can be struck through.
+- `Code snippets` look right at home.
 
-> [!NOTE]
-> Start writing here or create a new document in the menu/sidebar to start a blank sheet.
+### Lists & Tasks
+
+Stay organized with ease:
+
+1.  Prioritize your goals.
+2.  Break them down.
+3.  Execute.
+
+- [x] Launch mdbase
+- [ ] Be amazed
+- [ ] Write the next best-seller using:
+    - [x] Nested lists
+    - [ ] Focus mode
+
+## ⚡ Power Features
+
+We support **GitHub Flavored Markdown** and more!
+
+### 💻 Syntax Highlighting
+
+```javascript
+const writeCode = (lines) => {
+  console.log(`Writing ${lines} lines of code...`);
+  return "Done!";
+};
+```
+
+
+
+> [!TIP]
+> **Pro Tip:** You can split the view (⌘ + J) to see the raw Markdown alongside your preview/editor!
+
+## 🏁 Ready to go?
+
+Everything starts with a blank page. Create a new document to the left and let your creativity flow.
+
+*Happy writing!*

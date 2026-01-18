@@ -913,16 +913,33 @@ html, body {
     padding-left: 1.5em;
 }
 
-/* Checklist specific: hide bullets for items with checkboxes */
-.editor-content ul:has(input[type="checkbox"]) {
-    padding-left: 0.25rem;
-    list-style: none;
+.editor-content ul ul,
+.editor-content ul ol,
+.editor-content ol ul,
+.editor-content ol ol {
+    margin-bottom: 0;
+    margin-top: 0.75em;
+    padding-left: 1.5em; /* Added indentation for nested lists */
 }
 
-.editor-content li:has(input[type="checkbox"]) {
-    list-style-type: none;
-    padding-left: 0;
+.editor-content li {
+    margin-bottom: 0.5em; /* More breathing room */
 }
+
+/* Remove bottom margin from last item to keep spacing tight with next element */
+.editor-content li:last-child {
+    margin-bottom: 0;
+}
+
+.editor-content ul ul {
+    list-style-type: circle;
+}
+
+.editor-content ul ul ul {
+    list-style-type: square;
+}
+
+
 
 /* Table Styling in Editor */
 .editor-content table {
@@ -967,21 +984,30 @@ html, body {
     background-color: #fbfcfd;
 }
 
-/* Checkbox/Task List Styling */
-.editor-content ul:has(input[type="checkbox"]),
-.editor-content li:has(input[type="checkbox"]) {
+/* Checkbox/Task List Styling - using class for cross-browser support */
+.editor-content ul.contains-task-list,
+.editor-content li.task-list-item {
     list-style: none;
     padding-left: 0;
 }
 
-.editor-content li:has(input[type="checkbox"]) {
+.editor-content li.task-list-item {
     display: flex;
+    flex-wrap: wrap;
     align-items: flex-start;
     margin-bottom: 0.5rem;
     padding: 0.25rem 0.75rem;
     margin-left: -0.75rem;
     border-radius: 0.5rem;
     transition: background-color 0.2s ease;
+}
+
+.editor-content li.task-list-item > ul,
+.editor-content li.task-list-item > ol {
+    flex-basis: 100%;
+    width: 100%;
+    margin-top: 0.5rem;
+    padding-left: 1.5em;
 }
 
 .editor-content li input[type="checkbox"] {
@@ -995,9 +1021,11 @@ html, body {
     margin-top: 0.15rem;
     cursor: pointer;
     position: relative;
+    z-index: 10;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     background: white;
     flex-shrink: 0;
+    pointer-events: auto;
 }
 
 .editor-content li input[type="checkbox"]:hover {
@@ -1023,16 +1051,16 @@ html, body {
     transform: translate(-50%, -50%) rotate(45deg);
 }
 
-.editor-content li input[type="checkbox"]:checked + span,
-.editor-content li input[type="checkbox"]:checked + p,
-.editor-content li:has(input[type="checkbox"]:checked) span,
-.editor-content li:has(input[type="checkbox"]:checked) p {
+/* Checked state - ANY checked task item gets strikethrough */
+.editor-content li.task-list-item.checked > .task-text {
     color: var(--text-secondary);
     text-decoration: line-through;
 }
 
-.editor-content li:has(input[type="checkbox"]:checked) {
-    background-color: var(--accent-light);
+/* Unchecked items - explicit reset to prevent inheritance issues */
+.editor-content li.task-list-item:not(.checked) > .task-text {
+    color: inherit;
+    text-decoration: none;
 }
 
 /* Strikethrough Styling */
@@ -1180,11 +1208,7 @@ html, body {
     box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
-.editor-content li:has(input[type="checkbox"]:checked) {
-    color: var(--text-secondary);
-    text-decoration: line-through;
-    opacity: 0.8;
-}
+
 
 /* Code Block Styling */
 .code-block-wrapper {
