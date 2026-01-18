@@ -17,6 +17,78 @@
     --font-mono: 'JetBrains Mono', monospace;
 }
 
+/* Dark Mode */
+[data-theme="dark"] {
+    --primary-color: #60a5fa;
+    --primary-hover: #3b82f6;
+    --accent: #818cf8;
+    --accent-hover: #6366f1;
+    --accent-light: rgba(129, 140, 248, 0.15);
+    --bg-app: #0f172a;
+    --bg-sidebar: #1e293b;
+    --bg-editor: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark mode specific overrides */
+[data-theme="dark"] .toolbar {
+    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .sidebar {
+    background: var(--bg-sidebar);
+}
+
+[data-theme="dark"] .editor-content {
+    background: var(--bg-editor);
+}
+
+[data-theme="dark"] .stats-bar {
+    background: rgba(30, 41, 59, 0.9);
+}
+
+[data-theme="dark"] code:not([class*="language-"]) {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e879f9;
+}
+
+[data-theme="dark"] pre[class*="language-"] {
+    background: #0d1117;
+}
+
+[data-theme="dark"] .dropdown-menu {
+    background: var(--bg-sidebar);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-content {
+    background: var(--bg-sidebar);
+}
+
+[data-theme="dark"] .alert {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] blockquote {
+    background: rgba(255, 255, 255, 0.05);
+    border-left-color: var(--accent);
+}
+
+[data-theme="dark"] th {
+    background-color: #1e293b !important;
+}
+
+[data-theme="dark"] .source-textarea,
+[data-theme="dark"] #source-textarea {
+    background: #0f172a;
+    color: var(--text-primary);
+}
+
 * {
     margin: 0;
     padding: 0;

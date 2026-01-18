@@ -32,6 +32,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const inlineCodeBtn = document.getElementById('inline-code-btn');
     const insertTableBtn = document.getElementById('btn-insert-table');
     const insertTasklistBtn = document.getElementById('btn-insert-tasklist');
+    const toggleDarkModeBtn = document.getElementById('toggle-dark-mode');
+
+    // Dark Mode - Initialize from localStorage or system preference
+    const initDarkMode = () => {
+        const savedTheme = localStorage.getItem('md-flow-theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            if (toggleDarkModeBtn) {
+                toggleDarkModeBtn.querySelector('i').className = 'ph ph-sun';
+            }
+        }
+    };
+    initDarkMode();
+
+    // Dark Mode Toggle
+    if (toggleDarkModeBtn) {
+        toggleDarkModeBtn.addEventListener('click', () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                document.documentElement.removeAttribute('data-theme');
+                toggleDarkModeBtn.querySelector('i').className = 'ph ph-moon';
+                localStorage.setItem('md-flow-theme', 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                toggleDarkModeBtn.querySelector('i').className = 'ph ph-sun';
+                localStorage.setItem('md-flow-theme', 'dark');
+            }
+        });
+    }
 
     // Language Modal Elements
     const languageModal = document.getElementById('language-modal');
