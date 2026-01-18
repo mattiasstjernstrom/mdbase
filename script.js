@@ -576,7 +576,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const deleteDocument = async (id, e) => {
         e.stopPropagation();
-        if (confirm('Are you sure you want to delete this document?')) {
+
+        // Show confirm modal
+        const confirmModal = document.getElementById('confirm-modal');
+        const confirmTitle = document.getElementById('confirm-modal-title');
+        const confirmMessage = document.getElementById('confirm-modal-message');
+        const confirmYes = document.getElementById('confirm-modal-yes');
+        const confirmNo = document.getElementById('confirm-modal-no');
+        const closeConfirm = document.getElementById('close-confirm-modal');
+
+        confirmTitle.textContent = 'Delete Document';
+        confirmMessage.textContent = 'Are you sure you want to delete this document? This action cannot be undone.';
+        confirmYes.textContent = 'Delete';
+        confirmYes.className = 'btn primary';
+        confirmYes.style.background = '#ef4444';
+        confirmModal.classList.remove('hidden');
+
+        const handleConfirm = async () => {
             documents = documents.filter(d => d.id !== id);
             if (documents.length === 0) {
                 await createWelcomeDocument();
@@ -585,7 +601,24 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 saveToLocalStorage();
             }
-        }
+            confirmModal.classList.add('hidden');
+            cleanup();
+        };
+
+        const handleCancel = () => {
+            confirmModal.classList.add('hidden');
+            cleanup();
+        };
+
+        const cleanup = () => {
+            confirmYes.removeEventListener('click', handleConfirm);
+            confirmNo.removeEventListener('click', handleCancel);
+            closeConfirm.removeEventListener('click', handleCancel);
+        };
+
+        confirmYes.addEventListener('click', handleConfirm);
+        confirmNo.addEventListener('click', handleCancel);
+        closeConfirm.addEventListener('click', handleCancel);
     };
 
     const switchDocument = (id) => {
@@ -1429,13 +1462,114 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Insert Image
     const insertImageBtn = document.getElementById('btn-insert-image');
-    if (insertImageBtn) {
+    const imageModal = document.getElementById('image-modal');
+    const imageUrlInput = document.getElementById('image-url-input');
+    const imageAltInput = document.getElementById('image-alt-input');
+    const insertImageConfirm = document.getElementById('insert-image-confirm');
+    const cancelImageModal = document.getElementById('cancel-image-modal');
+    const closeImageModal = document.getElementById('close-image-modal');
+
+    if (insertImageBtn && imageModal) {
         insertImageBtn.addEventListener('click', () => {
-            const url = prompt('Enter image URL:');
+            imageUrlInput.value = '';
+            imageAltInput.value = '';
+            imageModal.classList.remove('hidden');
+            imageUrlInput.focus();
+        });
+
+        const handleInsertImage = () => {
+            const url = imageUrlInput.value.trim();
+            const alt = imageAltInput.value.trim() || 'Image';
+
             if (url) {
-                const alt = prompt('Enter alt text (description):', 'Image') || 'Image';
                 const imgMd = `\n![${alt}](${url})\n`;
                 insertAtCursor(`<img src="${url}" alt="${alt}">`, imgMd);
+            }
+            imageModal.classList.add('hidden');
+        };
+
+        const handleCancelImage = () => {
+            imageModal.classList.add('hidden');
+        };
+
+        insertImageConfirm.addEventListener('click', handleInsertImage);
+        cancelImageModal.addEventListener('click', handleCancelImage);
+        closeImageModal.addEventListener('click', handleCancelImage);
+
+        // Allow Enter to submit
+        imageUrlInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                imageAltInput.focus();
+            }
+        });
+        imageAltInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleInsertImage();
+            }
+        });
+    }
+
+    // Insert Link
+    const insertLinkBtn = document.getElementById('btn-insert-link');
+    const linkModal = document.getElementById('link-modal');
+    const linkUrlInput = document.getElementById('link-url-input');
+    const linkTextInput = document.getElementById('link-text-input');
+    const insertLinkConfirm = document.getElementById('insert-link-confirm');
+    const cancelLinkModal = document.getElementById('cancel-link-modal');
+    const closeLinkModal = document.getElementById('close-link-modal');
+
+    if (insertLinkBtn && linkModal) {
+        insertLinkBtn.addEventListener('click', () => {
+            // Get selected text if any
+            let selectedText = '';
+            if (lastFocusedElement === sourceTextarea) {
+                selectedText = sourceTextarea.value.substring(sourceTextarea.selectionStart, sourceTextarea.selectionEnd);
+            } else {
+                selectedText = window.getSelection().toString();
+            }
+
+            linkUrlInput.value = '';
+            linkTextInput.value = selectedText;
+            linkModal.classList.remove('hidden');
+            if (selectedText) {
+                linkUrlInput.focus();
+            } else {
+                linkTextInput.focus();
+            }
+        });
+
+        const handleInsertLink = () => {
+            const url = linkUrlInput.value.trim();
+            const text = linkTextInput.value.trim() || url;
+
+            if (url) {
+                const linkMd = `[${text}](${url})`;
+                insertAtCursor(`<a href="${url}">${text}</a>`, linkMd);
+            }
+            linkModal.classList.add('hidden');
+        };
+
+        const handleCancelLink = () => {
+            linkModal.classList.add('hidden');
+        };
+
+        insertLinkConfirm.addEventListener('click', handleInsertLink);
+        cancelLinkModal.addEventListener('click', handleCancelLink);
+        closeLinkModal.addEventListener('click', handleCancelLink);
+
+        // Allow Enter to submit
+        linkUrlInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleInsertLink();
+            }
+        });
+        linkTextInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                linkUrlInput.focus();
             }
         });
     }

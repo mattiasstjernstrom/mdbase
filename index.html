@@ -131,131 +131,138 @@
             <!-- Floating Toolbar -->
             <div class="toolbar-container">
                 <div class="toolbar">
-                    <!-- Menu Toggle -->
-                    <button id="menu-toggle" class="tool-btn" data-tooltip="Menu">
-                        <i class="ph ph-list"></i>
-                    </button>
-                    <div class="divider"></div>
+                    <!-- Left: Menu -->
+                    <div class="toolbar-segment">
+                        <button id="menu-toggle" class="tool-btn" data-tooltip="Menu">
+                            <i class="ph ph-list"></i>
+                        </button>
+                    </div>
 
-                    <!-- Formatting Tools -->
-                    <div class="toolbar-group">
-                        <button class="tool-btn" data-command="formatBlock" data-value="h1" data-tooltip="Heading 1">
-                            <span style="font-weight: 700; font-size: 1.1em;">H1</span>
-                        </button>
-                        <button class="tool-btn" data-command="formatBlock" data-value="h2" data-tooltip="Heading 2">
-                            <span style="font-weight: 600;">H2</span>
-                        </button>
-                    </div>
-                    <div class="divider"></div>
-                    <div class="toolbar-group">
-                        <button class="tool-btn" data-command="bold" data-tooltip="Bold">
-                            <i class="ph ph-text-b"></i>
-                        </button>
-                        <button class="tool-btn" data-command="italic" data-tooltip="Italic">
-                            <i class="ph ph-text-italic"></i>
-                        </button>
-                        <button class="tool-btn" data-command="strikeThrough" data-tooltip="Strikethrough">
-                            <i class="ph ph-text-strikethrough"></i>
-                        </button>
-                        <button class="tool-btn" data-command="underline" data-tooltip="Underline">
-                            <i class="ph ph-text-underline"></i>
-                        </button>
-                        <button class="tool-btn" id="btn-subscript" data-tooltip="Subscript">
-                            <i class="ph ph-text-subscript"></i>
-                        </button>
-                        <button class="tool-btn" id="btn-superscript" data-tooltip="Superscript">
-                            <i class="ph ph-text-superscript"></i>
-                        </button>
-                    </div>
-                    <div class="divider"></div>
-                    <div class="toolbar-group">
-                        <button class="tool-btn" data-command="formatBlock" data-value="pre" data-tooltip="Code Block">
-                            <i class="ph ph-code-block"></i>
-                        </button>
-                        <button class="tool-btn" id="inline-code-btn" data-tooltip="Inline Code">
-                            <i class="ph ph-code"></i>
-                        </button>
-                    </div>
-                    <div class="divider"></div>
-                    <div class="toolbar-group">
-                        <button class="tool-btn" data-command="insertUnorderedList" data-tooltip="Bulleted List">
-                            <i class="ph ph-list-bullets"></i>
-                        </button>
-                        <button class="tool-btn" data-command="insertOrderedList" data-tooltip="Numbered List">
-                            <i class="ph ph-list-numbers"></i>
-                        </button>
-
-                        <div class="tool-btn-dropdown" id="quote-dropdown">
-                            <button class="tool-btn" data-tooltip="Quote / Alerts">
-                                <i class="ph ph-quotes"></i>
-                                <i class="ph ph-caret-down" style="font-size: 0.6em; margin-left: 2px;"></i>
+                    <!-- Center: Formatting Tools -->
+                    <div class="toolbar-segment center">
+                        <div class="toolbar-group">
+                            <button class="tool-btn" data-command="formatBlock" data-value="h1" data-tooltip="Heading 1">
+                                <span style="font-weight: 700; font-size: 1.1em;">H1</span>
                             </button>
-                            <div class="dropdown-menu">
-                                <button class="dropdown-item" data-insert="blockquote">
-                                    <i class="ph ph-quotes"></i> Quote
+                            <button class="tool-btn" data-command="formatBlock" data-value="h2" data-tooltip="Heading 2">
+                                <span style="font-weight: 600;">H2</span>
+                            </button>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="toolbar-group">
+                            <button class="tool-btn" data-command="bold" data-tooltip="Bold">
+                                <i class="ph ph-text-b"></i>
+                            </button>
+                            <button class="tool-btn" data-command="italic" data-tooltip="Italic">
+                                <i class="ph ph-text-italic"></i>
+                            </button>
+                            <button class="tool-btn" data-command="strikeThrough" data-tooltip="Strikethrough">
+                                <i class="ph ph-text-strikethrough"></i>
+                            </button>
+                            <button class="tool-btn" data-command="underline" data-tooltip="Underline">
+                                <i class="ph ph-text-underline"></i>
+                            </button>
+                            <button class="tool-btn" id="btn-subscript" data-tooltip="Subscript">
+                                <i class="ph ph-text-subscript"></i>
+                            </button>
+                            <button class="tool-btn" id="btn-superscript" data-tooltip="Superscript">
+                                <i class="ph ph-text-superscript"></i>
+                            </button>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="toolbar-group">
+                            <button class="tool-btn" data-command="formatBlock" data-value="pre" data-tooltip="Code Block">
+                                <i class="ph ph-code-block"></i>
+                            </button>
+                            <button class="tool-btn" id="inline-code-btn" data-tooltip="Inline Code">
+                                <i class="ph ph-code"></i>
+                            </button>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="toolbar-group">
+                            <button class="tool-btn" data-command="insertUnorderedList" data-tooltip="Bulleted List">
+                                <i class="ph ph-list-bullets"></i>
+                            </button>
+                            <button class="tool-btn" data-command="insertOrderedList" data-tooltip="Numbered List">
+                                <i class="ph ph-list-numbers"></i>
+                            </button>
+
+                            <div class="tool-btn-dropdown" id="quote-dropdown">
+                                <button class="tool-btn" data-tooltip="Quote / Alerts">
+                                    <i class="ph ph-quotes"></i>
+                                    <i class="ph ph-caret-down" style="font-size: 0.6em; margin-left: 2px;"></i>
                                 </button>
-                                <div class="dropdown-divider"></div>
-                                <button class="dropdown-item" data-insert="alert-note">
-                                    <i class="ph ph-info"></i> Note
-                                </button>
-                                <button class="dropdown-item" data-insert="alert-tip">
-                                    <i class="ph ph-lightbulb"></i> Tip
-                                </button>
-                                <button class="dropdown-item" data-insert="alert-important">
-                                    <i class="ph ph-star"></i> Important
-                                </button>
-                                <button class="dropdown-item" data-insert="alert-warning">
-                                    <i class="ph ph-warning"></i> Warning
-                                </button>
-                                <button class="dropdown-item" data-insert="alert-caution">
-                                    <i class="ph ph-warning-octagon"></i> Caution
-                                </button>
+                                <div class="dropdown-menu">
+                                    <button class="dropdown-item" data-insert="blockquote">
+                                        <i class="ph ph-quotes"></i> Quote
+                                    </button>
+                                    <div class="dropdown-divider"></div>
+                                    <button class="dropdown-item" data-insert="alert-note">
+                                        <i class="ph ph-info"></i> Note
+                                    </button>
+                                    <button class="dropdown-item" data-insert="alert-tip">
+                                        <i class="ph ph-lightbulb"></i> Tip
+                                    </button>
+                                    <button class="dropdown-item" data-insert="alert-important">
+                                        <i class="ph ph-star"></i> Important
+                                    </button>
+                                    <button class="dropdown-item" data-insert="alert-warning">
+                                        <i class="ph ph-warning"></i> Warning
+                                    </button>
+                                    <button class="dropdown-item" data-insert="alert-caution">
+                                        <i class="ph ph-warning-octagon"></i> Caution
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="divider"></div>
-                    <div class="toolbar-group">
-                        <button class="tool-btn" id="btn-insert-table" data-tooltip="Insert Table">
-                            <i class="ph ph-table"></i>
-                        </button>
-                        <button class="tool-btn" id="btn-insert-tasklist" data-tooltip="Checklist">
-                            <i class="ph ph-check-square-offset"></i>
-                        </button>
-                        <button class="tool-btn" id="btn-insert-image" data-tooltip="Insert Image">
-                            <i class="ph ph-image"></i>
-                        </button>
-                        <button class="tool-btn" id="btn-insert-hr" data-tooltip="Horizontal Rule">
-                            <i class="ph ph-minus"></i>
-                        </button>
-                    </div>
-                    <div class="divider"></div>
-
-                    <!-- Actions -->
-                    <div class="toolbar-group">
-                        <button id="toggle-split-view" class="tool-btn" data-tooltip="Split View">
-                            <i class="ph ph-columns"></i>
-                        </button>
-                        <div class="tool-btn-dropdown" id="export-dropdown">
-                            <button class="tool-btn" data-tooltip="Export">
-                                <i class="ph ph-download"></i>
-                                <i class="ph ph-caret-down" style="font-size: 0.6em; margin-left: 2px;"></i>
+                        <div class="divider"></div>
+                        <div class="toolbar-group">
+                            <button class="tool-btn" id="btn-insert-table" data-tooltip="Insert Table">
+                                <i class="ph ph-table"></i>
                             </button>
-                            <div class="dropdown-menu">
-                                <button class="dropdown-item" id="export-md">
-                                    <i class="ph ph-file-md"></i> Markdown (.md)
-                                </button>
-                                <button class="dropdown-item" id="export-html">
-                                    <i class="ph ph-file-html"></i> HTML (.html)
-                                </button>
-                                <div class="dropdown-divider"></div>
-                                <button class="dropdown-item" id="export-pdf">
-                                    <i class="ph ph-printer"></i> PDF (via Print)
-                                </button>
-                            </div>
+                            <button class="tool-btn" id="btn-insert-tasklist" data-tooltip="Checklist">
+                                <i class="ph ph-check-square-offset"></i>
+                            </button>
+                            <button class="tool-btn" id="btn-insert-link" data-tooltip="Insert Link">
+                                <i class="ph ph-link"></i>
+                            </button>
+                            <button class="tool-btn" id="btn-insert-image" data-tooltip="Insert Image">
+                                <i class="ph ph-image"></i>
+                            </button>
+                            <button class="tool-btn" id="btn-insert-hr" data-tooltip="Horizontal Rule">
+                                <i class="ph ph-minus"></i>
+                            </button>
                         </div>
-                        <button id="toggle-dark-mode" class="tool-btn" data-tooltip="Toggle Dark Mode">
-                            <i class="ph ph-moon"></i>
-                        </button>
+                    </div>
+
+                    <!-- Right: Actions -->
+                    <div class="toolbar-segment">
+                        <div class="toolbar-group">
+                            <button id="toggle-split-view" class="tool-btn" data-tooltip="Split View">
+                                <i class="ph ph-columns"></i>
+                            </button>
+                            <div class="tool-btn-dropdown" id="export-dropdown">
+                                <button class="tool-btn" data-tooltip="Export">
+                                    <i class="ph ph-download"></i>
+                                    <i class="ph ph-caret-down" style="font-size: 0.6em; margin-left: 2px;"></i>
+                                </button>
+                                <div class="dropdown-menu">
+                                    <button class="dropdown-item" id="export-md">
+                                        <i class="ph ph-file-md"></i> Markdown (.md)
+                                    </button>
+                                    <button class="dropdown-item" id="export-html">
+                                        <i class="ph ph-file-html"></i> HTML (.html)
+                                    </button>
+                                    <div class="dropdown-divider"></div>
+                                    <button class="dropdown-item" id="export-pdf">
+                                        <i class="ph ph-printer"></i> PDF (via Print)
+                                    </button>
+                                </div>
+                            </div>
+                            <button id="toggle-dark-mode" class="tool-btn" data-tooltip="Toggle Dark Mode">
+                                <i class="ph ph-moon"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -362,9 +369,9 @@
                     <h2>Code Language</h2>
                     <button id="close-language-modal" class="btn secondary icon-only small"><i class="ph ph-x"></i></button>
                 </div>
-                <div class="modal-body" style="background: white; color: var(--text-primary); padding: 1.5rem; display: block;">
+                <div class="modal-body" style="background: var(--bg-editor); color: var(--text-primary); padding: 1.5rem; display: block;">
                     <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Enter programming language (e.g., javascript, py, css):</p>
-                    <div class="command-input-container" style="border: 1px solid var(--border-color); border-radius: 0.5rem; background: #f9fafb;">
+                    <div class="command-input-container" style="border: 1px solid var(--border-color); border-radius: 0.5rem; background: var(--bg-app);">
                         <i class="ph ph-code" style="color: var(--text-secondary);"></i>
                         <input type="text" id="language-input" placeholder="javascript" style="background: transparent; border: none; outline: none; padding: 0.5rem; width: 100%; color: var(--text-primary); font-family: var(--font-mono);">
                     </div>
@@ -372,6 +379,86 @@
                 <div class="modal-footer">
                     <button id="save-language" class="btn primary">Save</button>
                     <button id="cancel-language" class="btn secondary">Cancel</button>
+                </div>
+            </div>
+            <div class="modal-backdrop"></div>
+        </div>
+
+        <!-- Confirm Modal -->
+        <div id="confirm-modal" class="modal hidden">
+            <div class="modal-content shortcuts-content" style="max-width: 400px;">
+                <div class="modal-header">
+                    <h2 id="confirm-modal-title">Confirm</h2>
+                    <button id="close-confirm-modal" class="btn secondary icon-only small"><i class="ph ph-x"></i></button>
+                </div>
+                <div class="modal-body" style="background: var(--bg-editor); color: var(--text-primary); padding: 1.5rem; display: block;">
+                    <p id="confirm-modal-message" style="font-size: 0.95rem;"></p>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirm-modal-yes" class="btn primary">Delete</button>
+                    <button id="confirm-modal-no" class="btn secondary">Cancel</button>
+                </div>
+            </div>
+            <div class="modal-backdrop"></div>
+        </div>
+
+        <!-- Image Insert Modal -->
+        <div id="image-modal" class="modal hidden">
+            <div class="modal-content shortcuts-content" style="max-width: 450px;">
+                <div class="modal-header">
+                    <h2><i class="ph ph-image" style="margin-right: 0.5rem;"></i>Insert Image</h2>
+                    <button id="close-image-modal" class="btn secondary icon-only small"><i class="ph ph-x"></i></button>
+                </div>
+                <div class="modal-body" style="background: var(--bg-editor); color: var(--text-primary); padding: 1.5rem; display: block;">
+                    <div style="margin-bottom: 1rem;">
+                        <label style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Image URL</label>
+                        <div class="command-input-container" style="border: 1px solid var(--border-color); border-radius: 0.5rem; background: var(--bg-app);">
+                            <i class="ph ph-link" style="color: var(--text-secondary);"></i>
+                            <input type="text" id="image-url-input" placeholder="https://example.com/image.png" style="background: transparent; border: none; outline: none; padding: 0.5rem; width: 100%; color: var(--text-primary);">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Alt Text (description)</label>
+                        <div class="command-input-container" style="border: 1px solid var(--border-color); border-radius: 0.5rem; background: var(--bg-app);">
+                            <i class="ph ph-text-aa" style="color: var(--text-secondary);"></i>
+                            <input type="text" id="image-alt-input" placeholder="Image description" style="background: transparent; border: none; outline: none; padding: 0.5rem; width: 100%; color: var(--text-primary);">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="insert-image-confirm" class="btn primary">Insert</button>
+                    <button id="cancel-image-modal" class="btn secondary">Cancel</button>
+                </div>
+            </div>
+            <div class="modal-backdrop"></div>
+        </div>
+
+        <!-- Link Insert Modal -->
+        <div id="link-modal" class="modal hidden">
+            <div class="modal-content shortcuts-content" style="max-width: 450px;">
+                <div class="modal-header">
+                    <h2><i class="ph ph-link" style="margin-right: 0.5rem;"></i>Insert Link</h2>
+                    <button id="close-link-modal" class="btn secondary icon-only small"><i class="ph ph-x"></i></button>
+                </div>
+                <div class="modal-body" style="background: var(--bg-editor); color: var(--text-primary); padding: 1.5rem; display: block;">
+                    <div style="margin-bottom: 1rem;">
+                        <label style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Link URL</label>
+                        <div class="command-input-container" style="border: 1px solid var(--border-color); border-radius: 0.5rem; background: var(--bg-app);">
+                            <i class="ph ph-link" style="color: var(--text-secondary);"></i>
+                            <input type="text" id="link-url-input" placeholder="https://example.com" style="background: transparent; border: none; outline: none; padding: 0.5rem; width: 100%; color: var(--text-primary);">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Link Text</label>
+                        <div class="command-input-container" style="border: 1px solid var(--border-color); border-radius: 0.5rem; background: var(--bg-app);">
+                            <i class="ph ph-text-aa" style="color: var(--text-secondary);"></i>
+                            <input type="text" id="link-text-input" placeholder="Display text" style="background: transparent; border: none; outline: none; padding: 0.5rem; width: 100%; color: var(--text-primary);">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="insert-link-confirm" class="btn primary">Insert</button>
+                    <button id="cancel-link-modal" class="btn secondary">Cancel</button>
                 </div>
             </div>
             <div class="modal-backdrop"></div>
