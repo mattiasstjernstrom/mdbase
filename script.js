@@ -706,11 +706,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const isCmdOrCtrl = e.metaKey || e.ctrlKey;
         const key = e.key.toLowerCase();
 
-        // Debug logging
-        if (isCmdOrCtrl) {
-            console.log('SHORTCUT DEBUG:', { key, metaKey: e.metaKey, ctrlKey: e.ctrlKey });
-        }
-
         // Skip if we're in an input field that's not our editor or source
         const activeEl = document.activeElement;
         const inSource = activeEl === sourceTextarea;
@@ -721,7 +716,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Cmd/Ctrl + J: Toggle Split View
         if (key === 'j') {
-            console.log('Cmd+J detected, toggling split view');
             e.preventDefault();
             e.stopPropagation();
             document.getElementById('toggle-split-view')?.click();
@@ -730,7 +724,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Cmd/Ctrl + O: Toggle Outline
         if (key === 'o') {
-            console.log('Cmd+O detected, toggling outline');
             e.preventDefault();
             e.stopPropagation();
             outlineBtn?.click();
@@ -1137,6 +1130,65 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update toolbar button active states when cursor moves in WYSIWYG
     editor.addEventListener('click', updateButtonStates);
     editor.addEventListener('keyup', updateButtonStates);
+
+    // Scroll synchronization between editor (page) and source view
+    let isScrollSyncing = false;
+
+    const syncScrollFromPage = () => {
+        if (isScrollSyncing || !sourceTextarea) return;
+        if (sourceWrapper?.classList.contains('hidden')) return;
+
+        isScrollSyncing = true;
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollPercent = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+        const sourceMaxScroll = sourceTextarea.scrollHeight - sourceTextarea.clientHeight;
+        sourceTextarea.scrollTop = scrollPercent * sourceMaxScroll;
+        requestAnimationFrame(() => isScrollSyncing = false);
+    };
+
+    const syncScrollFromSource = () => {
+        if (isScrollSyncing || !sourceTextarea) return;
+        if (sourceWrapper?.classList.contains('hidden')) return;
+
+        isScrollSyncing = true;
+        const sourceMaxScroll = sourceTextarea.scrollHeight - sourceTextarea.clientHeight;
+        const scrollPercent = sourceMaxScroll > 0 ? sourceTextarea.scrollTop / sourceMaxScroll : 0;
+        const pageMaxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        window.scrollTo(0, scrollPercent * pageMaxScroll);
+        requestAnimationFrame(() => isScrollSyncing = false);
+    };
+
+    window.addEventListener('scroll', syncScrollFromPage);
+    if (sourceTextarea) {
+        sourceTextarea.addEventListener('scroll', syncScrollFromSource);
+    }
+
+    // --- Dynamic Mobile Toolbar (Hide on scroll) ---
+    const toolbarContainer = document.querySelector('.toolbar-container');
+    let lastScrollY = window.scrollY;
+    let scrollThreshold = 5;
+
+    window.addEventListener('scroll', () => {
+        // Only run on mobile/tablet (using 768px threshold matching CSS)
+        if (window.innerWidth > 768) {
+            toolbarContainer?.classList.remove('nav-hidden');
+            return;
+        }
+
+        const currentScrollY = window.scrollY;
+        const scrollDiff = currentScrollY - lastScrollY;
+
+        // Hide on scroll down, show on scroll up
+        if (currentScrollY > 50 && scrollDiff > scrollThreshold) {
+            // Scroll down
+            toolbarContainer?.classList.add('nav-hidden');
+        } else if (scrollDiff < -scrollThreshold || currentScrollY <= 20) {
+            // Scroll up or at top
+            toolbarContainer?.classList.remove('nav-hidden');
+        }
+
+        lastScrollY = currentScrollY;
+    }, { passive: true });
 
     // Alt+click (Windows/Linux) or Cmd+click (Mac) to follow links
     editor.addEventListener('click', (e) => {

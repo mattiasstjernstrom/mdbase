@@ -63,3 +63,6 @@ const writeCode = (lines) => {
 Everything starts with a blank page. Create a new document to the left and let your creativity flow.
 
 *Happy writing!*
+Sincerely, 
+
+_mdbase team_

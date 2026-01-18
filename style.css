@@ -78,9 +78,13 @@
     background-color: #1e293b !important;
 }
 
-[data-theme="dark"] .source-textarea,
 [data-theme="dark"] #source-textarea {
-    background: #0f172a;
+    background: #121212;
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] #source-textarea:focus {
+    background: #1e1e1e;
     color: var(--text-primary);
 }
 
@@ -650,9 +654,21 @@ body {
     display: flex;
     justify-content: center;
     padding: 2.5rem 1rem 1rem 1rem;
-    /* Extra top padding for tooltips */
-    pointer-events: none;
     /* Allow scrolling through the container */
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (max-width: 768px) {
+    .toolbar-container.nav-hidden {
+        transform: translateY(-62px);
+    }
+
+    .toolbar-container.nav-hidden .toolbar-segment:first-child,
+    .toolbar-container.nav-hidden .toolbar-segment:last-child {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(-10px);
+    }
 }
 
 .toolbar-container .toolbar {
@@ -925,24 +941,34 @@ body {
 .workspace {
     flex: 1;
     display: flex;
-    overflow: hidden;
+    flex-direction: row;
+    overflow: visible;
     position: relative;
+    gap: 1rem;
 }
 
-.editor-wrapper,
+.editor-wrapper {
+    flex: 1;
+    overflow-y: visible;
+    height: auto;
+    min-width: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    order: 1;
+}
+
 .preview-wrapper {
     flex: 1;
-    overflow-y: auto;
-    height: 100%;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.preview-wrapper {
-    background: #1e1e1e;
-    /* Dark theme for code */
-    border-left: 1px solid var(--border-color);
+    min-width: 300px;
+    position: sticky;
+    top: 80px;
+    height: calc(100vh - 110px);
+    overflow: hidden;
+    border-left: none;
     display: flex;
     flex-direction: column;
+    border-radius: 0.5rem;
+    align-self: flex-start;
+    order: 2;
 }
 
 .preview-wrapper.hidden {
@@ -950,7 +976,7 @@ body {
 }
 
 .source-header {
-    background: #252526;
+    background: var(--bg-editor);
     padding: 0.5rem 1rem;
     display: flex;
     justify-content: space-between;
@@ -958,7 +984,6 @@ body {
     color: #9ca3af;
     font-size: 0.75rem;
     font-family: var(--font-mono);
-    border-bottom: 1px solid #333;
 }
 
 .source-actions {
@@ -987,8 +1012,8 @@ body {
 #source-textarea {
     width: 100%;
     height: 100%;
-    background: #1e1e1e;
-    color: #e5e7eb;
+    background: #121212;
+    color: #f1f5f9;
     border: none;
     outline: none;
     resize: none;
@@ -996,10 +1021,11 @@ body {
     font-size: 0.9rem;
     line-height: 1.6;
     padding: 1.5rem;
+    transition: background 0.2s ease, color 0.2s ease;
 }
 
 #source-textarea:focus {
-    background: #252526;
+    background: #1e1e1e;
 }
 
 /* Sync highlight effect */
@@ -1088,6 +1114,7 @@ body {
     box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.5);
     width: fit-content;
+    transition: opacity 0.3s ease, transform 0.3s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
 [data-theme="dark"] .toolbar-segment {
@@ -1986,7 +2013,7 @@ kbd {
 }
 
 .shortcuts-content .modal-body {
-    background: white;
+    background: var(--bg-editor);
     /* Reset for shortcuts */
     color: var(--text-primary);
     padding: 1.5rem;
