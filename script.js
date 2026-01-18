@@ -416,16 +416,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const mobileSourceBtn = document.getElementById('mobile-source-btn');
 
     const toggleSplitView = () => {
         if (sourceWrapper) {
             sourceWrapper.classList.toggle('hidden');
-            toggleSplitViewBtn.classList.toggle('active');
+            toggleSplitViewBtn?.classList.toggle('active');
+            mobileSourceBtn?.classList.toggle('active');
             if (!sourceWrapper.classList.contains('hidden')) {
                 syncToSource();
             }
         }
     };
+
+    // Mobile source button click handler
+    if (mobileSourceBtn) {
+        mobileSourceBtn.addEventListener('click', toggleSplitView);
+    }
 
     const updateOutline = () => {
         if (!outlineSidebar || outlineSidebar.classList.contains('hidden')) return;
