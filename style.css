@@ -1588,7 +1588,7 @@ html, body {
 }
 
 .editor-content pre {
-    background-color: transparent;
+    background: rgba(255, 255, 255, 0.05);
     color: #e2e8f0;
     padding: 2rem 1.25rem 1.25rem 1.25rem;
     margin: 0;
