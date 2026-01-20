@@ -2202,7 +2202,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // Toolbar scroll fade logic for mobile
     const toolbarCenter = document.querySelector('.toolbar-segment.center');
-    if (toolbarCenter) {
+    // Reuse toolbarContainer from line 1167
+    if (toolbarCenter && toolbarContainer) {
         const updateToolbarFades = () => {
             const scrollLeft = toolbarCenter.scrollLeft;
             const scrollWidth = toolbarCenter.scrollWidth;
@@ -2211,16 +2212,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Show left fade if we've scrolled a bit
             if (scrollLeft > 10) {
-                toolbarCenter.classList.add('show-fade-left');
+                toolbarContainer.classList.add('show-fade-left');
             } else {
-                toolbarCenter.classList.remove('show-fade-left');
+                toolbarContainer.classList.remove('show-fade-left');
             }
 
             // Show right fade if there's more to scroll
             if (maxScroll > 0 && scrollLeft < maxScroll - 10) {
-                toolbarCenter.classList.add('show-fade-right');
+                toolbarContainer.classList.add('show-fade-right');
             } else {
-                toolbarCenter.classList.remove('show-fade-right');
+                toolbarContainer.classList.remove('show-fade-right');
             }
         };
 
