@@ -418,6 +418,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const mobileSourceBtn = document.getElementById('mobile-source-btn');
 
+    // Swap sides button (desktop only)
+    const swapSidesBtn = document.getElementById('swap-sides-btn');
+    const workspace = document.querySelector('.workspace');
+
+    const updateSwapBtnVisibility = () => {
+        if (swapSidesBtn && sourceWrapper) {
+            const splitViewOpen = !sourceWrapper.classList.contains('hidden');
+            swapSidesBtn.style.display = splitViewOpen ? 'flex' : 'none';
+        }
+    };
+
     const toggleSplitView = () => {
         if (sourceWrapper) {
             sourceWrapper.classList.toggle('hidden');
@@ -426,6 +437,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!sourceWrapper.classList.contains('hidden')) {
                 syncToSource();
             }
+            updateSwapBtnVisibility();
+            // Save split view state to localStorage
+            localStorage.setItem('md-split-view', !sourceWrapper.classList.contains('hidden'));
+        }
+    };
+
+    // Restore split view state from localStorage
+    const initSplitViewState = () => {
+        const savedSplitView = localStorage.getItem('md-split-view');
+        if (savedSplitView === 'true' && sourceWrapper) {
+            sourceWrapper.classList.remove('hidden');
+            toggleSplitViewBtn?.classList.add('active');
+            mobileSourceBtn?.classList.add('active');
+            syncToSource();
+            updateSwapBtnVisibility();
         }
     };
 
@@ -433,6 +459,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mobileSourceBtn) {
         mobileSourceBtn.addEventListener('click', toggleSplitView);
     }
+
+    if (swapSidesBtn && workspace) {
+        swapSidesBtn.addEventListener('click', () => {
+            workspace.classList.toggle('swapped');
+            swapSidesBtn.classList.toggle('active');
+            // Save preference
+            localStorage.setItem('md-swap-sides', workspace.classList.contains('swapped'));
+        });
+
+        // Restore preference
+        if (localStorage.getItem('md-swap-sides') === 'true') {
+            workspace.classList.add('swapped');
+            swapSidesBtn.classList.add('active');
+        }
+
+        // Initial visibility (hidden until split view opens)
+        updateSwapBtnVisibility();
+    }
+
+    // Initialize split view state after swap sides is set up
+    initSplitViewState();
 
     const updateOutline = () => {
         if (!outlineSidebar || outlineSidebar.classList.contains('hidden')) return;
@@ -694,6 +741,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Commands ---
     const commands = [
+        { name: 'New Document', icon: 'ph-file-plus', action: createNewDocument, shortcut: 'Cmd+Shift+N' },
         { name: 'Toggle Split View', icon: 'ph-columns', action: toggleSplitView, shortcut: 'Cmd+J' },
         { name: 'Toggle Outline', icon: 'ph-list-numbers', action: () => outlineBtn?.click(), shortcut: 'Cmd+O' },
         { name: 'Export HTML', icon: 'ph-download', action: () => exportHtmlBtn?.click() },
@@ -742,6 +790,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (key === 'h') {
             e.preventDefault();
             document.getElementById('shortcuts-modal')?.classList.remove('hidden');
+            return;
+        }
+
+        // Cmd/Ctrl + Shift + N: New Document
+        if (key === 'n' && e.shiftKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            createNewDocument();
             return;
         }
 
@@ -1132,35 +1188,281 @@ document.addEventListener('DOMContentLoaded', () => {
     editor.addEventListener('keyup', updateButtonStates);
 
     // Scroll synchronization between editor (page) and source view
+    // Hybrid approach: proportional scroll + block-based fine-tuning for accuracy
     let isScrollSyncing = false;
+    let scrollSyncTimeout = null;
+    let lastSyncSource = null; // Track which side initiated last scroll
 
+    // Get the total scrollable height of the editor (page)
+    const getEditorScrollMetrics = () => {
+        const docHeight = Math.max(
+            document.body.scrollHeight,
+            document.documentElement.scrollHeight,
+            document.body.offsetHeight,
+            document.documentElement.offsetHeight
+        );
+        const viewportHeight = window.innerHeight;
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const maxScroll = Math.max(0, docHeight - viewportHeight);
+
+        return { scrollTop, maxScroll, viewportHeight, docHeight };
+    };
+
+    // Get the total scrollable metrics of the source textarea
+    const getSourceScrollMetrics = () => {
+        if (!sourceTextarea) return { scrollTop: 0, maxScroll: 0, viewportHeight: 0, totalHeight: 0 };
+
+        const scrollTop = sourceTextarea.scrollTop;
+        const viewportHeight = sourceTextarea.clientHeight;
+        const totalHeight = sourceTextarea.scrollHeight;
+        const maxScroll = Math.max(0, totalHeight - viewportHeight);
+
+        return { scrollTop, maxScroll, viewportHeight, totalHeight };
+    };
+
+    // Get all block elements in the editor with their positions
+    const getEditorBlocks = () => {
+        const blocks = [];
+        const blockElements = editor.querySelectorAll('p, h1, h2, h3, h4, h5, h6, pre, ul, ol, blockquote, table, hr, div.code-block-wrapper');
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+
+        blockElements.forEach((el, index) => {
+            // Skip nested elements (like paragraphs inside blockquotes)
+            if (el.closest('.code-block-wrapper') && el !== el.closest('.code-block-wrapper')) return;
+
+            const rect = el.getBoundingClientRect();
+            blocks.push({
+                index,
+                top: rect.top + scrollTop,
+                bottom: rect.bottom + scrollTop,
+                height: rect.height,
+                element: el
+            });
+        });
+
+        return blocks;
+    };
+
+    // Parse source markdown into blocks with line ranges
+    const getSourceBlocks = () => {
+        if (!sourceTextarea) return [];
+        const text = sourceTextarea.value;
+        const lines = text.split('\n');
+        const blocks = [];
+        let currentBlock = { startLine: 0, endLine: 0, isEmpty: true };
+        let blockIndex = 0;
+
+        lines.forEach((line, lineIndex) => {
+            const isBlank = line.trim() === '';
+
+            if (isBlank && !currentBlock.isEmpty) {
+                currentBlock.endLine = lineIndex - 1;
+                blocks.push({ ...currentBlock, index: blockIndex++ });
+                currentBlock = { startLine: lineIndex + 1, endLine: lineIndex + 1, isEmpty: true };
+            } else if (!isBlank) {
+                if (currentBlock.isEmpty) {
+                    currentBlock.startLine = lineIndex;
+                }
+                currentBlock.isEmpty = false;
+                currentBlock.endLine = lineIndex;
+            }
+        });
+
+        if (!currentBlock.isEmpty) {
+            blocks.push({ ...currentBlock, index: blockIndex });
+        }
+
+        return blocks;
+    };
+
+    // Get line height in source textarea
+    const getSourceLineHeight = () => {
+        return parseFloat(getComputedStyle(sourceTextarea).lineHeight) || 20;
+    };
+
+    // Calculate scroll percentage (0-1)
+    const getScrollPercentage = (scrollTop, maxScroll) => {
+        if (maxScroll <= 0) return 0;
+        return Math.min(1, Math.max(0, scrollTop / maxScroll));
+    };
+
+    // Find the block at a given Y position in the editor
+    const findEditorBlockAtPosition = (yPosition) => {
+        const blocks = getEditorBlocks();
+        for (let i = 0; i < blocks.length; i++) {
+            if (blocks[i].top <= yPosition && blocks[i].bottom >= yPosition) {
+                // Return block index and progress within block (0-1)
+                const blockProgress = (yPosition - blocks[i].top) / Math.max(1, blocks[i].height);
+                return { index: i, progress: Math.min(1, Math.max(0, blockProgress)), block: blocks[i] };
+            }
+            if (blocks[i].top > yPosition) {
+                return { index: Math.max(0, i - 1), progress: 1, block: blocks[Math.max(0, i - 1)] };
+            }
+        }
+        return { index: blocks.length - 1, progress: 1, block: blocks[blocks.length - 1] };
+    };
+
+    // Find the block at a given line in the source
+    const findSourceBlockAtLine = (lineNumber) => {
+        const blocks = getSourceBlocks();
+        for (let i = 0; i < blocks.length; i++) {
+            if (blocks[i].startLine <= lineNumber && blocks[i].endLine >= lineNumber) {
+                const blockLines = blocks[i].endLine - blocks[i].startLine + 1;
+                const blockProgress = (lineNumber - blocks[i].startLine) / Math.max(1, blockLines);
+                return { index: i, progress: Math.min(1, Math.max(0, blockProgress)), block: blocks[i] };
+            }
+            if (blocks[i].startLine > lineNumber) {
+                return { index: Math.max(0, i - 1), progress: 1, block: blocks[Math.max(0, i - 1)] };
+            }
+        }
+        return { index: blocks.length - 1, progress: 1, block: blocks[blocks.length - 1] };
+    };
+
+    // Sync source textarea to match editor scroll position
     const syncScrollFromPage = () => {
         if (isScrollSyncing || !sourceTextarea) return;
         if (sourceWrapper?.classList.contains('hidden')) return;
 
-        isScrollSyncing = true;
-        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-        const scrollPercent = maxScroll > 0 ? window.scrollY / maxScroll : 0;
-        const sourceMaxScroll = sourceTextarea.scrollHeight - sourceTextarea.clientHeight;
-        sourceTextarea.scrollTop = scrollPercent * sourceMaxScroll;
-        requestAnimationFrame(() => isScrollSyncing = false);
+        if (scrollSyncTimeout) clearTimeout(scrollSyncTimeout);
+        scrollSyncTimeout = setTimeout(() => {
+            isScrollSyncing = true;
+            lastSyncSource = 'page';
+
+            const editorMetrics = getEditorScrollMetrics();
+            const sourceMetrics = getSourceScrollMetrics();
+
+            // Handle edge cases: at very top or very bottom
+            if (editorMetrics.scrollTop <= 5) {
+                sourceTextarea.scrollTop = 0;
+                requestAnimationFrame(() => isScrollSyncing = false);
+                return;
+            }
+
+            if (editorMetrics.scrollTop >= editorMetrics.maxScroll - 5) {
+                sourceTextarea.scrollTop = sourceMetrics.maxScroll;
+                requestAnimationFrame(() => isScrollSyncing = false);
+                return;
+            }
+
+            // Hybrid approach: use proportional scroll as baseline
+            const scrollPercent = getScrollPercentage(editorMetrics.scrollTop, editorMetrics.maxScroll);
+
+            // Apply with smooth easing for middle sections
+            let targetScrollTop = scrollPercent * sourceMetrics.maxScroll;
+
+            // Try block-based refinement for better accuracy
+            const editorBlocks = getEditorBlocks();
+            const sourceBlocks = getSourceBlocks();
+
+            if (editorBlocks.length > 0 && sourceBlocks.length > 0) {
+                // Find which block is in the viewport center
+                const viewportCenter = editorMetrics.scrollTop + (editorMetrics.viewportHeight * 0.4);
+                const editorBlockInfo = findEditorBlockAtPosition(viewportCenter);
+
+                if (editorBlockInfo.index < sourceBlocks.length) {
+                    const lineHeight = getSourceLineHeight();
+                    const matchingSourceBlock = sourceBlocks[editorBlockInfo.index];
+
+                    // Calculate target line including progress within block
+                    const blockLines = matchingSourceBlock.endLine - matchingSourceBlock.startLine + 1;
+                    const targetLine = matchingSourceBlock.startLine + (blockLines * editorBlockInfo.progress);
+                    const blockBasedScroll = (targetLine * lineHeight) - (sourceMetrics.viewportHeight * 0.4);
+
+                    // Blend between proportional and block-based (favor block-based)
+                    // Use more proportional weight for very long documents
+                    const totalBlocks = Math.max(editorBlocks.length, sourceBlocks.length);
+                    const proportionalWeight = Math.min(0.4, totalBlocks / 200); // More proportional for long docs
+                    targetScrollTop = (proportionalWeight * targetScrollTop) +
+                                     ((1 - proportionalWeight) * blockBasedScroll);
+                }
+            }
+
+            // Clamp and apply
+            targetScrollTop = Math.max(0, Math.min(sourceMetrics.maxScroll, targetScrollTop));
+
+            // Smooth scroll using small increments for large jumps
+            const currentScroll = sourceTextarea.scrollTop;
+            const diff = targetScrollTop - currentScroll;
+
+            if (Math.abs(diff) > 50) {
+                // For large jumps, use immediate positioning
+                sourceTextarea.scrollTop = targetScrollTop;
+            } else {
+                // For small adjustments, snap directly
+                sourceTextarea.scrollTop = targetScrollTop;
+            }
+
+            requestAnimationFrame(() => isScrollSyncing = false);
+        }, 16); // ~60fps throttle
     };
 
+    // Sync editor (page) to match source textarea scroll position
     const syncScrollFromSource = () => {
         if (isScrollSyncing || !sourceTextarea) return;
         if (sourceWrapper?.classList.contains('hidden')) return;
 
-        isScrollSyncing = true;
-        const sourceMaxScroll = sourceTextarea.scrollHeight - sourceTextarea.clientHeight;
-        const scrollPercent = sourceMaxScroll > 0 ? sourceTextarea.scrollTop / sourceMaxScroll : 0;
-        const pageMaxScroll = document.documentElement.scrollHeight - window.innerHeight;
-        window.scrollTo(0, scrollPercent * pageMaxScroll);
-        requestAnimationFrame(() => isScrollSyncing = false);
+        if (scrollSyncTimeout) clearTimeout(scrollSyncTimeout);
+        scrollSyncTimeout = setTimeout(() => {
+            isScrollSyncing = true;
+            lastSyncSource = 'source';
+
+            const editorMetrics = getEditorScrollMetrics();
+            const sourceMetrics = getSourceScrollMetrics();
+
+            // Handle edge cases: at very top or very bottom
+            if (sourceMetrics.scrollTop <= 5) {
+                window.scrollTo({ top: 0, behavior: 'auto' });
+                requestAnimationFrame(() => isScrollSyncing = false);
+                return;
+            }
+
+            if (sourceMetrics.scrollTop >= sourceMetrics.maxScroll - 5) {
+                window.scrollTo({ top: editorMetrics.maxScroll, behavior: 'auto' });
+                requestAnimationFrame(() => isScrollSyncing = false);
+                return;
+            }
+
+            // Hybrid approach: use proportional scroll as baseline
+            const scrollPercent = getScrollPercentage(sourceMetrics.scrollTop, sourceMetrics.maxScroll);
+
+            let targetScrollTop = scrollPercent * editorMetrics.maxScroll;
+
+            // Try block-based refinement
+            const editorBlocks = getEditorBlocks();
+            const sourceBlocks = getSourceBlocks();
+
+            if (editorBlocks.length > 0 && sourceBlocks.length > 0) {
+                const lineHeight = getSourceLineHeight();
+                const viewportCenterLine = (sourceMetrics.scrollTop + (sourceMetrics.viewportHeight * 0.4)) / lineHeight;
+                const sourceBlockInfo = findSourceBlockAtLine(Math.floor(viewportCenterLine));
+
+                if (sourceBlockInfo.index < editorBlocks.length) {
+                    const matchingEditorBlock = editorBlocks[sourceBlockInfo.index];
+
+                    // Calculate target position including progress within block
+                    const blockBasedScroll = matchingEditorBlock.top +
+                                            (matchingEditorBlock.height * sourceBlockInfo.progress) -
+                                            (editorMetrics.viewportHeight * 0.4);
+
+                    // Blend between proportional and block-based
+                    const totalBlocks = Math.max(editorBlocks.length, sourceBlocks.length);
+                    const proportionalWeight = Math.min(0.4, totalBlocks / 200);
+                    targetScrollTop = (proportionalWeight * targetScrollTop) +
+                                     ((1 - proportionalWeight) * blockBasedScroll);
+                }
+            }
+
+            // Clamp and apply
+            targetScrollTop = Math.max(0, Math.min(editorMetrics.maxScroll, targetScrollTop));
+            window.scrollTo({ top: targetScrollTop, behavior: 'auto' });
+
+            requestAnimationFrame(() => isScrollSyncing = false);
+        }, 16); // ~60fps throttle
     };
 
-    window.addEventListener('scroll', syncScrollFromPage);
+    window.addEventListener('scroll', syncScrollFromPage, { passive: true });
     if (sourceTextarea) {
-        sourceTextarea.addEventListener('scroll', syncScrollFromSource);
+        sourceTextarea.addEventListener('scroll', syncScrollFromSource, { passive: true });
     }
 
     // --- Dynamic Mobile Toolbar (Hide on scroll) ---
@@ -1996,6 +2298,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isCmd && e.key === 'o') { e.preventDefault(); outlineBtn?.click(); }
         // Split View
         if (isCmd && e.key === 'j') { e.preventDefault(); toggleSplitView(); }
+        // New Document
+        if (isCmd && isShift && e.key.toLowerCase() === 'n') { e.preventDefault(); createNewDocument(); }
         // Escape - Close all overlays
         if (e.key === 'Escape') {
             commandPalette?.classList.add('hidden');

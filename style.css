@@ -972,6 +972,27 @@ body {
     border-radius: 0.5rem;
     align-self: flex-start;
     order: 2;
+    transition: order 0.3s ease;
+}
+
+/* Swapped layout - markdown view on left */
+.workspace.swapped .editor-wrapper {
+    order: 2;
+}
+
+.workspace.swapped .preview-wrapper {
+    order: 1;
+}
+
+/* Desktop only button */
+.desktop-only {
+    display: flex;
+}
+
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none;
+    }
 }
 
 .preview-wrapper.hidden {
