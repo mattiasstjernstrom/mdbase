@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sourceWrapper = document.getElementById('source-wrapper');
     const sourceTextarea = document.getElementById('source-textarea');
     const copySourceBtn = document.getElementById('copy-source');
+    const closeSourceBtn = document.getElementById('close-source');
     const exportHtmlBtn = document.getElementById('export-html');
 
     const commandPalette = document.getElementById('command-palette');
@@ -359,9 +360,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Sync WYSIWYG -> Source
-    const syncToSource = () => {
+    const syncToSource = (force = false) => {
         if (lastEditedBy === 'source') return;
-        if (sourceWrapper && !sourceWrapper.classList.contains('hidden')) {
+        if (force || (sourceWrapper && !sourceWrapper.classList.contains('hidden'))) {
             const markdown = turndownService.turndown(editor.innerHTML);
             if (sourceTextarea.value !== markdown) {
                 sourceTextarea.value = markdown;
@@ -745,6 +746,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: 'Toggle Split View', icon: 'ph-columns', action: toggleSplitView, shortcut: 'Cmd+J' },
         { name: 'Toggle Outline', icon: 'ph-list-numbers', action: () => outlineBtn?.click(), shortcut: 'Cmd+O' },
         { name: 'Export HTML', icon: 'ph-download', action: () => exportHtmlBtn?.click() },
+        { name: 'Export MD', icon: 'ph-file-md', action: () => exportMdBtn?.click() },
         { name: 'Find & Replace', icon: 'ph-magnifying-glass', action: () => findBox?.classList.remove('hidden'), shortcut: 'Cmd+F' },
         { name: 'Print (PDF)', icon: 'ph-printer', action: () => window.print() }
     ];
@@ -1373,7 +1375,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const totalBlocks = Math.max(editorBlocks.length, sourceBlocks.length);
                     const proportionalWeight = Math.min(0.4, totalBlocks / 200); // More proportional for long docs
                     targetScrollTop = (proportionalWeight * targetScrollTop) +
-                                     ((1 - proportionalWeight) * blockBasedScroll);
+                        ((1 - proportionalWeight) * blockBasedScroll);
                 }
             }
 
@@ -1441,14 +1443,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Calculate target position including progress within block
                     const blockBasedScroll = matchingEditorBlock.top +
-                                            (matchingEditorBlock.height * sourceBlockInfo.progress) -
-                                            (editorMetrics.viewportHeight * 0.4);
+                        (matchingEditorBlock.height * sourceBlockInfo.progress) -
+                        (editorMetrics.viewportHeight * 0.4);
 
                     // Blend between proportional and block-based
                     const totalBlocks = Math.max(editorBlocks.length, sourceBlocks.length);
                     const proportionalWeight = Math.min(0.4, totalBlocks / 200);
                     targetScrollTop = (proportionalWeight * targetScrollTop) +
-                                     ((1 - proportionalWeight) * blockBasedScroll);
+                        ((1 - proportionalWeight) * blockBasedScroll);
                 }
             }
 
@@ -2158,6 +2160,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Close Source Button
+    if (closeSourceBtn) {
+        closeSourceBtn.addEventListener('click', () => {
+            toggleSplitView();
+        });
+    }
+
     // Outline Button
     if (outlineBtn) {
         outlineBtn.addEventListener('click', () => {
@@ -2214,6 +2223,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (exportMdBtn) {
         exportMdBtn.onclick = () => {
+            syncToSource(true);
             const docTitle = (documents.find(d => d.id === currentDocId)?.title || 'document').replace(/[^a-z0-9]/gi, '_').toLowerCase();
             downloadFile(`${docTitle}.md`, sourceTextarea.value, 'text/markdown;charset=utf-8');
         };

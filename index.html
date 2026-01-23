@@ -350,9 +350,14 @@
                 <div class="preview-wrapper hidden" id="source-wrapper">
                     <div class="source-header">
                         <span>Markdown</span>
-                        <button id="copy-source" class="btn secondary icon-only small" data-tooltip="Copy">
-                            <i class="ph ph-copy"></i>
-                        </button>
+                        <div class="source-actions">
+                            <button id="copy-source" class="btn secondary icon-only small" data-tooltip="Copy">
+                                <i class="ph ph-copy"></i>
+                            </button>
+                            <button id="close-source" class="btn secondary icon-only small" data-tooltip="Close">
+                                <i class="ph ph-x"></i>
+                            </button>
+                        </div>
                     </div>
                     <textarea id="source-textarea" spellcheck="false" placeholder="Write Markdown here..."></textarea>
                 </div>
