@@ -12,9 +12,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleSplitViewBtn = document.getElementById('toggle-split-view');
     const sourceWrapper = document.getElementById('source-wrapper');
     const sourceTextarea = document.getElementById('source-textarea');
+    const lineNumbersEl = document.getElementById('line-numbers');
     const copySourceBtn = document.getElementById('copy-source');
     const closeSourceBtn = document.getElementById('close-source');
     const exportHtmlBtn = document.getElementById('export-html');
+
+    // Line Numbers Functionality
+    const updateLineNumbers = () => {
+        if (!lineNumbersEl || !sourceTextarea) return;
+
+        const lines = sourceTextarea.value.split('\n');
+        const lineCount = lines.length;
+
+        // Generate line numbers
+        let lineNumbersHTML = '';
+        for (let i = 1; i <= lineCount; i++) {
+            lineNumbersHTML += `<div>${i}</div>`;
+        }
+
+        lineNumbersEl.innerHTML = lineNumbersHTML;
+    };
+
+    // Sync line numbers scroll with textarea
+    const syncLineNumbersScroll = () => {
+        if (!lineNumbersEl || !sourceTextarea) return;
+        lineNumbersEl.scrollTop = sourceTextarea.scrollTop;
+    };
+
+    // Initialize line numbers when source view is opened
+    if (sourceTextarea) {
+        sourceTextarea.addEventListener('input', updateLineNumbers);
+        sourceTextarea.addEventListener('scroll', syncLineNumbersScroll);
+        // Initial update
+        updateLineNumbers();
+    }
 
     const commandPalette = document.getElementById('command-palette');
     const commandInput = document.getElementById('command-input');
@@ -366,6 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const markdown = turndownService.turndown(editor.innerHTML);
             if (sourceTextarea.value !== markdown) {
                 sourceTextarea.value = markdown;
+                updateLineNumbers();
             }
         }
     };

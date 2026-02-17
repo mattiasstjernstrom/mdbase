@@ -88,6 +88,12 @@
     color: var(--text-primary);
 }
 
+[data-theme="dark"] .line-numbers {
+    background: #0d0d0d;
+    color: #6b7280;
+    border-right-color: #2a2a2a;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -1033,8 +1039,30 @@ body {
     display: none;
 }
 
+/* Source Editor Container with Line Numbers */
+.source-editor-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.line-numbers {
+    background: #0d0d0d;
+    color: #6b7280;
+    padding: 1.5rem 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    text-align: right;
+    user-select: none;
+    overflow: hidden;
+    border-right: 1px solid #2a2a2a;
+    min-width: 50px;
+}
+
 #source-textarea {
-    width: 100%;
+    flex: 1;
     height: 100%;
     background: #121212;
     color: #f1f5f9;
@@ -1046,6 +1074,9 @@ body {
     line-height: 1.6;
     padding: 1.5rem;
     transition: background 0.2s ease, color 0.2s ease;
+    overflow-y: auto;
+    overflow-x: auto;
+    white-space: pre;
 }
 
 #source-textarea:focus {
