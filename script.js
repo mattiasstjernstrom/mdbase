@@ -2382,7 +2382,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Close modals
-    document.querySelectorAll('.close-btn, .modal-backdrop').forEach(el => {
+    document.querySelectorAll('.btn.close, .close-btn, .modal-backdrop').forEach(el => {
         el.addEventListener('click', () => {
             commandPalette?.classList.add('hidden');
         });

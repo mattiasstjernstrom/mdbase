@@ -3,6 +3,7 @@
     --primary-hover: #2563eb;
     --accent: #6366f1;
     --accent-hover: #4f46e5;
+    --accent-close: #ef4444;
     --accent-light: rgba(99, 102, 241, 0.1);
     --bg-app: #f8fafc;
     --bg-sidebar: #ffffff;
@@ -800,7 +801,7 @@ body {
     position: fixed;
     top: 100px;
     right: 50px;
-    background: white;
+    background: var(--bg-app);
     border: 1px solid var(--border-color);
     border-radius: 0.5rem;
     padding: 1rem;
@@ -926,6 +927,11 @@ body {
     background-color: var(--accent-hover);
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
+}
+
+.btn.close {
+    background-color: var(--accent-close);
+    color: white;
 }
 
 .btn.secondary {
