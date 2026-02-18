@@ -7,6 +7,7 @@
     --accent-light: rgba(99, 102, 241, 0.1);
     --bg-app: #f8fafc;
     --bg-sidebar: #ffffff;
+    --bg-secondary: #ffffff;
     --bg-editor: #ffffff;
     --bg-tertiary: #f1f5f9;
     --bg-hover: #f1f5f9;
@@ -68,6 +69,7 @@
     --accent-light: rgba(129, 140, 248, 0.15);
     --bg-app: #0f172a;
     --bg-sidebar: #1e293b;
+    --bg-secondary: #1e293b;
     --bg-editor: #1e293b;
     --bg-tertiary: #334155;
     --bg-hover: #2d3748;
@@ -2724,4 +2726,201 @@ textarea#markdown-input {
     background-color: var(--highlight-find-current);
     color: var(--white);
     box-shadow: 0 0 0 2px var(--highlight-find-current);
+}
+
+/* Cookie Consent Banner */
+.cookie-banner {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: calc(100% - 3rem);
+    max-width: 750px;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cookie-banner.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(120%);
+}
+
+.cookie-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(to top, var(--overlay-bg) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 9998;
+    transition: opacity 0.5s ease;
+    opacity: 1;
+}
+
+.cookie-overlay.hidden {
+    opacity: 0;
+}
+
+.cookie-banner-content {
+    background: var(--surface-glass);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border-color);
+    border-radius: 1.5rem;
+    padding: 1.5rem 2rem;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+[data-theme="dark"] .cookie-banner-content {
+    background: var(--bg-sidebar);
+    border-color: var(--border-color);
+}
+
+.cookie-banner-text {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.cookie-banner-text > i {
+    font-size: 1.75rem;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+.cookie-banner-text strong {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.cookie-banner-text p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.cookie-banner-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.cookie-banner-actions .btn {
+    padding: 0.6rem 1.25rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+
+.cookie-banner-actions .btn.primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.cookie-banner-actions .btn.primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+}
+
+.cookie-banner-actions .btn.secondary {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    border-color: var(--border-color);
+}
+
+.cookie-banner-actions .btn.secondary:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.cookie-banner details {
+    margin-top: 0.5rem;
+}
+
+.cookie-banner details[open] {
+    margin-top: 1rem;
+}
+
+.cookie-banner details summary {
+    list-style: none;
+    font-size: 0.85rem;
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+.cookie-banner details summary::-webkit-details-marker {
+    display: none;
+}
+
+.cookie-banner details summary::after {
+    content: "▼";
+    margin-left: 0.5rem;
+    font-size: 0.7rem;
+    color: var(--accent);
+    text-decoration: none;
+    display: inline-block;
+}
+
+.cookie-banner details[open] summary::after {
+    content: "▲";
+    color: var(--accent);
+    text-decoration: none;
+    display: inline-block;
+}
+
+.cookie-banner details summary:hover {
+    color: var(--accent-hover);
+    cursor: pointer;
+}
+
+.cookie-banner details p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.cookie-banner .details-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 600px) {
+    .cookie-banner-content {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.25rem;
+    }
+
+    .cookie-banner-text {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .cookie-banner-actions {
+        width: 100%;
+    }
+
+    .cookie-banner-actions .btn {
+        flex: 1;
+    }
 }

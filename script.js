@@ -2709,4 +2709,60 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     updateStats();
     if (typeof mermaid !== 'undefined') mermaid.initialize({ startOnLoad: true });
+
+    // --- Cookie Consent ---
+    const cookieBanner = document.getElementById('cookie-banner');
+    const cookieOverlay = document.getElementById('cookie-overlay');
+    const cookieAcceptBtn = document.getElementById('cookie-accept');
+    const cookieDeclineBtn = document.getElementById('cookie-decline');
+    const cookieSettingsBtn = document.getElementById('cookie-settings-btn');
+
+    const showCookieBanner = () => {
+        if (cookieBanner) cookieBanner.classList.remove('hidden');
+        if (cookieOverlay) cookieOverlay.classList.remove('hidden');
+    };
+
+    const hideCookieBanner = () => {
+        if (cookieBanner) cookieBanner.classList.add('hidden');
+        if (cookieOverlay) cookieOverlay.classList.add('hidden');
+    };
+
+    const acceptCookies = () => {
+        localStorage.setItem('cookie-consent', 'accepted');
+        hideCookieBanner();
+        // Load GA now
+        if (typeof loadGoogleAnalytics === 'function') {
+            loadGoogleAnalytics();
+        }
+    };
+
+    const declineCookies = () => {
+        localStorage.setItem('cookie-consent', 'declined');
+        hideCookieBanner();
+        // Remove GA script if it was loaded
+        const gaScript = document.querySelector('script[src*="googletagmanager"]');
+        if (gaScript) gaScript.remove();
+        // Opt out of GA tracking
+        window['ga-disable-G-69K9JL7LBP'] = true;
+    };
+
+    if (cookieAcceptBtn) cookieAcceptBtn.addEventListener('click', acceptCookies);
+    if (cookieDeclineBtn) cookieDeclineBtn.addEventListener('click', declineCookies);
+
+    // Cookie Settings button in dashboard – re-show the banner
+    if (cookieSettingsBtn) {
+        cookieSettingsBtn.addEventListener('click', () => {
+            // Close dashboard first
+            if (sidebar) sidebar.classList.remove('active');
+            // Small delay so banner appears after dashboard closes
+            setTimeout(showCookieBanner, 300);
+        });
+    }
+
+    // Show banner if user hasn't made a choice yet
+    const cookieConsent = localStorage.getItem('cookie-consent');
+    if (!cookieConsent) {
+        // Delay slightly for smoother page load
+        setTimeout(showCookieBanner, 1000);
+    }
 });

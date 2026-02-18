@@ -1,14 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-69K9JL7LBP"></script>
+    <!-- Google Analytics – loaded only after cookie consent -->
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
 
-        gtag('config', 'G-69K9JL7LBP');
+        function loadGoogleAnalytics() {
+            if (document.querySelector('script[src*="googletagmanager"]')) return;
+            var s = document.createElement('script');
+            s.async = true;
+            s.src = 'https://www.googletagmanager.com/gtag/js?id=G-69K9JL7LBP';
+            document.head.appendChild(s);
+            gtag('js', new Date());
+            gtag('config', 'G-69K9JL7LBP');
+        }
+
+        // Auto-load if user already accepted
+        if (localStorage.getItem('cookie-consent') === 'accepted') {
+            loadGoogleAnalytics();
+        }
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -133,6 +144,10 @@
                                 <span class="status">Online</span>
                             </div>
                         </div>
+                        <button id="cookie-settings-btn" class="nav-item" style="margin-top: 1rem;">
+                            <i class="ph ph-cookie"></i>
+                            <span>Cookie Settings</span>
+                        </button>
                     </div>
                 </div>
 
@@ -527,6 +542,34 @@
                 <button id="replace-btn" class="btn secondary" title="Replace">Replace</button>
                 <button id="replace-all-btn" class="btn secondary" title="Replace All">All</button>
                 <button id="close-find" class="btn close icon-only small"><i class="ph ph-x"></i></button>
+            </div>
+        </div>
+
+        <!-- Cookie Consent Overlay -->
+        <div id="cookie-overlay" class="cookie-overlay hidden"></div>
+
+        <!-- Cookie Consent Banner -->
+        <div id="cookie-banner" class="cookie-banner hidden">
+            <div class="cookie-banner-content">
+                <div class="cookie-banner-text">
+                    <i class="ph ph-cookie"></i>
+                    <div>
+                        <strong>We value your privacy!</strong>
+                        <p>By accepting you allow us to use local storage for your documents and settings, and cookies for analytics.</p>
+                        <details>
+                            <summary>What is saved?</summary>
+                            <div class="details-content">
+                                <p><strong>Local Storage (Essential):</strong> Your Markdown documents, theme preference (dark/light), and editor settings are saved locally on your device so you can work offline and resume where you left off.</p>
+                                <p><strong>Cookies (Optional):</strong> If you accept, we use Google Analytics to see which features are popular and how the app performs. This data is anonymous and helps us build a better tool.</p>
+                                <p><strong>Consent:</strong> Your choice is saved in local storage so we don't have to ask you again.</p>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+                <div class="cookie-banner-actions">
+                    <button id="cookie-decline" class="btn secondary">Essential only</button>
+                    <button id="cookie-accept" class="btn primary">Accept all</button>
+                </div>
             </div>
         </div>
 
