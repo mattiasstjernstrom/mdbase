@@ -700,6 +700,9 @@ document.addEventListener('DOMContentLoaded', () => {
             syncToSource(true);
             // Re-render through source->editor pipeline to process any unrendered LaTeX
             syncToEditor();
+            // Force source view update
+            sourceTextarea.value = turndownService.turndown(editor.innerHTML);
+            updateLineNumbers();
             // Reset undo stack for new document
             if (typeof undoStack !== 'undefined') {
                 undoStack.length = 0;
@@ -788,6 +791,9 @@ document.addEventListener('DOMContentLoaded', () => {
             editor.innerHTML = widthDoc.content;
             syncToSource(true);
             syncToEditor();
+            // Force source view update
+            sourceTextarea.value = turndownService.turndown(editor.innerHTML);
+            updateLineNumbers();
             // Reset undo stack for new document
             if (typeof undoStack !== 'undefined') {
                 undoStack.length = 0;
@@ -2801,7 +2807,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const declineCookies = () => {
-        localStorage.setItem('cookie-consent', 'declined');
         hideCookieBanner();
         // Remove GA script if it was loaded
         const gaScript = document.querySelector('script[src*="googletagmanager"]');
