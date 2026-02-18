@@ -767,6 +767,64 @@ document.addEventListener('DOMContentLoaded', () => {
     if (newDocBtn) newDocBtn.onclick = createNewDocument;
     if (newDocBtnDashboard) newDocBtnDashboard.onclick = createNewDocument;
 
+    // Upload button in dashboard – triggers file import
+    const uploadBtnDashboard = document.getElementById('upload-btn-dashboard');
+    if (uploadBtnDashboard) {
+        uploadBtnDashboard.onclick = () => {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.md,.markdown,.txt,.html';
+            fileInput.style.display = 'none';
+
+            fileInput.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const content = event.target.result;
+                    let htmlContent = '';
+
+                    const fileName = file.name.toLowerCase();
+
+                    if (fileName.endsWith('.md') || fileName.endsWith('.markdown') || fileName.endsWith('.txt')) {
+                        const processedMarkdown = processFootnotes(content);
+                        htmlContent = marked.parse(processedMarkdown);
+                    } else if (fileName.endsWith('.html')) {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = content;
+                        const bodyContent = tempDiv.querySelector('body');
+                        htmlContent = bodyContent ? bodyContent.innerHTML : content;
+                    } else {
+                        htmlContent = `<p>${content.replace(/\n/g, '<br>')}</p>`;
+                    }
+
+                    const newDoc = {
+                        id: generateId(),
+                        title: file.name.replace(/\.(md|markdown|txt|html)$/i, ''),
+                        content: htmlContent,
+                        createdAt: Date.now(),
+                        updatedAt: Date.now()
+                    };
+
+                    documents.unshift(newDoc);
+                    switchDocument(newDoc.id);
+
+                    editor.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.removeAttribute('disabled'));
+                    updateStats();
+                    updateOutline();
+                    editor.focus();
+                };
+
+                reader.readAsText(file);
+                document.body.removeChild(fileInput);
+            };
+
+            document.body.appendChild(fileInput);
+            fileInput.click();
+        };
+    }
+
     // Load initial docs
     // Call this at the end of DOMContentLoaded or init
     // setTimeout to ensure other inits are done
