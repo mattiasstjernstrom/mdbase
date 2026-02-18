@@ -2667,6 +2667,22 @@ textarea#markdown-input {
 /* (Currently handled by text content, but we could add specific styling if needed) */
 
 @media print {
+    :root {
+        --bg-app: #ffffff !important;
+        --bg-editor: #ffffff !important;
+        --bg-sidebar: #ffffff !important;
+        --text-primary: #1e293b !important;
+        --text-secondary: #64748b !important;
+        --border-color: #e2e8f0 !important;
+        --bg-code: #f3f4f6 !important;
+        --bg-tertiary: #f1f5f9 !important;
+        --accent-light: rgba(99, 102, 241, 0.05) !important;
+        --bg-info: rgba(56, 139, 253, 0.05) !important;
+        --bg-success: rgba(46, 160, 67, 0.05) !important;
+        --bg-important: rgba(130, 80, 223, 0.05) !important;
+        --bg-warning: rgba(210, 153, 34, 0.05) !important;
+        --bg-danger: rgba(248, 81, 73, 0.05) !important;
+    }
 
     .sidebar,
     .toolbar,
@@ -2684,53 +2700,60 @@ textarea#markdown-input {
     #outline-sidebar,
     #source-wrapper,
     .dropdown-menu,
-    .sidebar-overlay {
+    .sidebar-overlay,
+    .cookie-banner,
+    .cookie-overlay {
         display: none !important;
     }
 
-    .app-container {
-        height: auto;
-        overflow: visible;
-    }
-
-    .editor-area {
-        height: auto;
-        overflow: visible;
-        margin-left: 0 !important;
+    .app-container,
+    .editor-area,
+    .editor-wrapper,
+    .editor-content {
+        height: auto !important;
+        overflow: visible !important;
+        background: white !important;
+        background-color: white !important;
+        color: #1e293b !important;
+        margin: 0 !important;
+        padding: 0 !important;
         width: 100% !important;
         display: block !important;
-    }
-
-    .editor-wrapper {
-        height: auto;
-        overflow: visible;
-        padding: 0;
-    }
-
-    .editor-content {
-        height: auto;
-        overflow: visible;
-        box-shadow: none;
-        padding: 0;
-        max-width: 100%;
-        margin: 0 !important;
+        box-shadow: none !important;
         border: none !important;
     }
 
-    /* Preserve formatting colors if user enables background graphics */
     body {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
-        background-color: var(--white);
+        background-color: white !important;
+        background: white !important;
+        color: #1e293b !important;
     }
 
-    /* Ensure text is black for printing */
-    .editor-content,
     .editor-content * {
-        color: var(--black) !important;
+        color: #1e293b !important;
+        background-color: transparent !important;
     }
 
-    /* Hide scrollbars */
+    /* Preserve specific formatting backgrounds */
+    .editor-content pre,
+    .editor-content code {
+        background-color: #f3f4f6 !important;
+        color: #e879f9 !important;
+        padding: 0.2rem 0.4rem !important;
+        border-radius: 4px !important;
+    }
+
+    .alert {
+        background-color: var(--bg-info) !important;
+        border-left: 4px solid var(--alert-info) !important;
+    }
+    .alert-tip { background-color: var(--bg-success) !important; border-left-color: var(--alert-success) !important; }
+    .alert-important { background-color: var(--bg-important) !important; border-left-color: var(--alert-important) !important; }
+    .alert-warning { background-color: var(--bg-warning) !important; border-left-color: var(--alert-warning) !important; }
+    .alert-caution { background-color: var(--bg-danger) !important; border-left-color: var(--alert-danger) !important; }
+
     ::-webkit-scrollbar {
         display: none;
     }
