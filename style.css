@@ -2012,6 +2012,26 @@ body {
     color: var(--alert-danger);
 }
 
+/* LaTeX / KaTeX Math */
+.math-block {
+    display: block;
+    text-align: center;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+.math-inline {
+    display: inline;
+    padding: 0 0.15em;
+}
+
+.math-error {
+    color: var(--text-danger);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+}
+
 /* Horizontal Rule */
 .editor-content hr {
     border: none;

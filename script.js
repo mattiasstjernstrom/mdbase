@@ -291,6 +291,49 @@ document.addEventListener('DOMContentLoaded', () => {
         return processed;
     };
 
+    // LaTeX/KaTeX preprocessor – uses placeholders to protect rendered HTML from marked
+    let mathPlaceholders = {};
+
+    const processLaTeX = (markdown) => {
+        if (typeof katex === 'undefined') return markdown;
+        mathPlaceholders = {};
+        let counter = 0;
+
+        // Block math: $$...$$
+        let processed = markdown.replace(/\$\$([\s\S]+?)\$\$/g, (match, tex) => {
+            const id = `%%MATH_BLOCK_${counter++}%%`;
+            try {
+                mathPlaceholders[id] = `<div class="math-block" data-latex="${encodeURIComponent(tex.trim())}">${katex.renderToString(tex.trim(), { displayMode: true, throwOnError: false })}</div>`;
+            } catch (e) {
+                mathPlaceholders[id] = `<div class="math-block math-error">${match}</div>`;
+            }
+            return id;
+        });
+
+        // Inline math: $...$ (but not $$)
+        processed = processed.replace(/(?<!\$)\$(?!\$)([^\$\n]+?)\$(?!\$)/g, (match, tex) => {
+            const id = `%%MATH_INLINE_${counter++}%%`;
+            try {
+                mathPlaceholders[id] = `<span class="math-inline" data-latex="${encodeURIComponent(tex.trim())}">${katex.renderToString(tex.trim(), { displayMode: false, throwOnError: false })}</span>`;
+            } catch (e) {
+                mathPlaceholders[id] = `<span class="math-inline math-error">${match}</span>`;
+            }
+            return id;
+        });
+
+        return processed;
+    };
+
+    // Must be called after marked.parse() to restore math HTML
+    const restoreLaTeX = (html) => {
+        let result = html;
+        for (const [placeholder, rendered] of Object.entries(mathPlaceholders)) {
+            result = result.replaceAll(placeholder, rendered);
+        }
+        mathPlaceholders = {};
+        return result;
+    };
+
     marked.setOptions({
         renderer: renderer,
         gfm: true,
@@ -340,6 +383,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = node.getAttribute('id') || '';
             const hashes = '#'.repeat(level);
             return `\n${hashes} ${content} {#${id}}\n`;
+        }
+    });
+
+    // Custom Turndown rule for block math
+    turndownService.addRule('mathBlock', {
+        filter: (node) => node.nodeName === 'DIV' && node.classList.contains('math-block'),
+        replacement: (content, node) => {
+            const latex = decodeURIComponent(node.getAttribute('data-latex') || '');
+            return `\n$$${latex}$$\n`;
+        }
+    });
+
+    // Custom Turndown rule for inline math
+    turndownService.addRule('mathInline', {
+        filter: (node) => node.nodeName === 'SPAN' && node.classList.contains('math-inline'),
+        replacement: (content, node) => {
+            const latex = decodeURIComponent(node.getAttribute('data-latex') || '');
+            return `$${latex}$`;
         }
     });
 
@@ -405,8 +466,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sync Source -> WYSIWYG
     const syncToEditor = () => {
         lastEditedBy = 'source';
-        const processedMarkdown = processFootnotes(sourceTextarea.value);
-        const html = marked.parse(processedMarkdown);
+        const processedMarkdown = processLaTeX(processFootnotes(sourceTextarea.value));
+        const html = restoreLaTeX(marked.parse(processedMarkdown));
         if (editor.innerHTML !== html) {
             editor.innerHTML = html;
             // Enable checkboxes for task lists and fix structure
@@ -596,7 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const welcomeDoc = {
             id: generateId(),
             title: 'Welcome to MDBase |',
-            content: typeof marked !== 'undefined' ? marked.parse(markdownContent) : markdownContent,
+            content: typeof marked !== 'undefined' ? restoreLaTeX(marked.parse(processLaTeX(processFootnotes(markdownContent)))) : markdownContent,
             createdAt: Date.now(),
             updatedAt: Date.now()
         };
@@ -636,11 +697,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentDoc = documents.find(d => d.id === currentDocId);
         if (currentDoc) {
             editor.innerHTML = currentDoc.content;
-            syncToSource();
+            syncToSource(true);
+            // Re-render through source->editor pipeline to process any unrendered LaTeX
+            syncToEditor();
             // Reset undo stack for new document
             if (typeof undoStack !== 'undefined') {
                 undoStack.length = 0;
-                undoStack.push(currentDoc.content);
+                undoStack.push(editor.innerHTML);
                 redoStack.length = 0;
             }
         }
@@ -723,11 +786,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const widthDoc = documents.find(d => d.id === id);
         if (widthDoc) {
             editor.innerHTML = widthDoc.content;
-            syncToSource();
+            syncToSource(true);
+            syncToEditor();
             // Reset undo stack for new document
             if (typeof undoStack !== 'undefined') {
                 undoStack.length = 0;
-                undoStack.push(widthDoc.content);
+                undoStack.push(editor.innerHTML);
                 redoStack.length = 0;
             }
         }
@@ -788,8 +852,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const fileName = file.name.toLowerCase();
 
                     if (fileName.endsWith('.md') || fileName.endsWith('.markdown') || fileName.endsWith('.txt')) {
-                        const processedMarkdown = processFootnotes(content);
-                        htmlContent = marked.parse(processedMarkdown);
+                        const processedMarkdown = processLaTeX(processFootnotes(content));
+                        htmlContent = restoreLaTeX(marked.parse(processedMarkdown));
                     } else if (fileName.endsWith('.html')) {
                         const tempDiv = document.createElement('div');
                         tempDiv.innerHTML = content;
@@ -2389,8 +2453,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (fileName.endsWith('.md') || fileName.endsWith('.markdown') || fileName.endsWith('.txt')) {
                         // Process as markdown
-                        const processedMarkdown = processFootnotes(content);
-                        htmlContent = marked.parse(processedMarkdown);
+                        const processedMarkdown = processLaTeX(processFootnotes(content));
+                        htmlContent = restoreLaTeX(marked.parse(processedMarkdown));
                     } else if (fileName.endsWith('.html')) {
                         // Use HTML content directly (or extract body if it's a full HTML document)
                         const tempDiv = document.createElement('div');
